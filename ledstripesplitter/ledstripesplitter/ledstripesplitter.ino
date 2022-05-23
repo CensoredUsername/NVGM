@@ -15,6 +15,7 @@
 uint8_t segment_bytecode[2 * MAX_SEGMENT_COUNT] = {0};
 
 void setup() {
+    cli();
     configure_input();
     configure_segment(0, PE, 1);
     configure_segment(1, PE, 0);
@@ -32,7 +33,6 @@ void setup() {
 }
 
 void loop() {
-    cli();
     execute_bytecode(4, 4);
 }
 
@@ -63,55 +63,79 @@ void execute_bytecode(uint8_t segment_count, uint8_t segment_length) {
         // r18 contains either the reset counter or the segment counter
         // r0 contains the bitmask for the current output port
         "entry_point: \n"
-        "movw r30, %A[bytecode_addr] \n" // load segment bytecode address into Z register
-        "ldi r27, %[port_reg_hibyte] \n" // X high byte, high byte of all port register addresses
+            "movw r30, %A[bytecode_addr] \n" // load segment bytecode address into Z register
+            "ldi r27, %[port_reg_hibyte] \n" // X high byte, high byte of all port register addresses
 
         // reset await loop prologue
         "restart_reset_loop: \n"
-        "ldi r18, %[reset_loop_cycles] \n"
+            "ldi r18, %[reset_loop_cycles] \n"
         "reset_loop: \n" // this takes 6 cycles to loop, which at 20MHz means ~0.3us per loop
             "sbic %[input_port], %[input_pin] \n" // 1 cycle + 2 if next is skipped
-            "rjmp restart_reset_loop \n" // 2 cycles
+                "rjmp restart_reset_loop \n" // 2 cycles
             "dec r18 \n" // 1 cycle
             "brne reset_loop \n" // 2 cycles if taken, 1 if not
 
-        // segment loop prologue
+        // set segment count
         "mov r18, %[segment_count] \n" // amount of segments to go through
 
-        "segment_loop: \n"
-            // setup for the current segment. need to load the right address in X, and the right bitmask in R20.
-            // both are read from a small datastructure. said data structure should be in the Z pointer. also iterate through it here
+        "next_segment: \n"
             "ld r26, Z+ \n" // 2 cycles, load low byte of X from bytecode
             "ld r0, Z+ \n" // 2 cycles, load the correct bitmask from bytecode
 
-            "movw r24, %A[bitcount_per_segment] \n" // ; 1 cycle, load amount of bits in bitcount to counter
-            "bit_loop: \n"
+        "next_bit: \n" // start of the loop per bit
+        
+            // await a rising edge. This loop takes 3 cycles, or terminates 2, 3 or 4 cycles after a rising edge has happened.
+            "sbis %[input_port], %[input_pin] \n" // 1 cycle
+                "rjmp next_bit \n" // 2 cycles if taken, 1 if skipped (one word instr)
 
-                "rising_edge: \n"
-                    "sbis %[input_port], %[input_pin] \n" // 1 cycle, + 2 if next skipped
-                    "rjmp rising_edge \n" // 2 cycles
+            // 8 cycles remaining
+            
+            // padding
+            "nop \n nop \n nop \n" // 3 cycles
 
-                // rising edge detected, toggle current output pin
-                "st X, r0 \n" // 1 cycle
-                "nop \n"
+            // toggle the output high.
+            "st X, r0 \n" // 1 cycle. now we have either 5 or 13 cycles till we should go down.
 
-                "falling_edge: \n"
-                    "sbic %[input_port], %[input_pin] \n" // 1 cycle, + 2 if next skipped
-                    "rjmp falling_edge \n" // ; 2 cycles
+            // reset bitcount if it reached zero
+            "sbiw r24, 1 \n" // 2 cycles, decrement bitcount. store equality to zero in flags
+            "brne notzero \n" // 2 cycles if taken, 1 if not
+                "movw r24, %A[bitcount_per_segment] \n" // 1 cycle, load amount of bits in bitcount to counter
+            "notzero: \n"
 
-                // falling edge detected, toggle current output pin
-                "st X, r0 \n" // 1 cycle
+            // read if we should be high or low (6 cycles after the end of the rising_edge loop)
+            "sbic %[input_port], %[input_pin] \n" // 1 cycle
+            "rjmp one \n" // 2 cycles if taken, 1 if not.
+            
+            // a zero was detected.
+            "zero: \n"
+                // go low 6 cycles after the original go high
+                "st X, r0 \n" // 1 cycle.
 
-                "sbiw r24, 1 \n" // 2 cycles
-                "brne bit_loop \n" // 2 cycles if taken, 1 if not 
+                // if not at the end of the bitcount loop, start scanning again.
+                "brne next_bit \n" // 2 cycles if taken, one if not
 
-            "dec r18 \n" // 1 cycle
-            "brne segment_loop \n" // 2 cycles if taken, 1 if not 
+                // decrement segment counter and either go back to the next segment or the entry point
+                "dec r18 \n" // 1 cycle
+                "brne next_segment \n" // 2 cycles if taken, one if not.
+                "rjmp entry_point \n" // 2 cycles
 
-        "rjmp entry_point \n"
-        // if this proves too slow (or a variable bitcount is needed)
-        // unrolling segment_loop so there's just one special loop for each segment
-        // would probably be the best idea
+            // a one was detected. 
+            "one: \n"
+                // 6 cycles to do something with
+                "nop \n nop \n nop \n nop \n" // wait 4 cycles
+                "brne simple \n" // 2 cycles if taken, one if not
+                "dec r18 \n" // one cycle
+            
+                // go low 13 cycles after the original go high
+                "st X, r0 \n" // 1 cycle.
+                "brne next_segment \n" // 2 cycles if taken, one if not.
+                "rjmp entry_point \n" // 2 cycles
+
+            "simple: \n"
+                // go low and start looking for the next bit
+                "st X, r0 \n" // 1 cycle.
+                "rjmp next_bit \n" // 2 cycles
+
         : /* no outputs */
         : [segment_count]"r"(segment_count)
         , [bitcount_per_segment]"r"(24*(uint16_t)segment_length)
