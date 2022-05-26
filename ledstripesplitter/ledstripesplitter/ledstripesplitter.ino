@@ -33,7 +33,7 @@ void setup() {
 }
 
 void loop() {
-    execute_bytecode(4, 4);
+    execute_bytecode(12, 16);
 }
 
 void configure_input() {
