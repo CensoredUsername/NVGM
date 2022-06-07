@@ -1,0 +1,145 @@
+Notes:
+
+RBE = Register bank enable
+RBS = Register bank select
+To my knowledge the program does not do any register bank switching
+
+MBE = Memory bank enable
+MBS = Memory bank select
+The program does use memory bank switching unfortunately.
+MBE is automatically set to 0 when entering interrupt.
+
+SBS = stack bank select (always enabled, stack pointer is 8 bits).
+
+MBE/RBE state is restored over function calls
+
+addressed memory bank:
+- 1: if MBE=0 then 0 else MBS (always used for HL)
+- 2: 0 (always used for DE/DL)
+- 3: if MBE=0 then copies bit 7. else MBS (used for static mem.bit addresses)
+- 4: always F
+- 5: always F
+
+registers XA', BC', DE' and HL' are the matching registers of the current register bank xor 1
+
+
+Memory map layout / data memory
+
+Register state of the four register banks is stored from 0x000 to 0x01F, in order A, X, L, H, E, D, C, B (bytewise XA, HL, DE, BC), i.e. data memory 8bit accesses are little endian
+
+IO memory
+
+0xF80: stack pointer, 8 bits, rw
+
+0xF82: RBS, 4 bits, r
+0xF83: MBS, 4 bits, r
+0xF84: SBS, 4 bits, r/w
+0xF85: BTM (basic timer mode), 4 bits or 1 bit, w
+0xF86: BT (basic timer), 8 bits, r
+
+0xF8B: WDTM (watch dog timer enable, 1 bit (bit 3), w
+
+0xF98: WM (watch mode), 8 bits or 1 bit (bit 3), r/w
+
+0xFA0: TM0 (timer 0 mode), 8 bits or 1 bit (bit 3), r/w
+0xFA2: TOE0 (timer 0 output enable), 1 bit (bit 3), r/w
+0xFA4: T0 (timer 0 count), 8 bits, r
+0xFA6: TMOD0 (timer 0 modulo), 8 bits, r/w
+
+0xFA8: TM1 (timer 1 mode), 8 bits or 1 bit (bit 3), r/w
+0xFAA: TOE1 (timer 1 output enable), 1 bit (bit 3), r/w
+0xFAC: T1 (timer 1 count), 8 bits, r
+0xFAE: TMOD1 (timer 1 modulo), 8 bits, r/w
+
+0xFB0: PSW (program status register), r/w in 4 bits, r in 8 bits
+0xFB0.0: RBE
+0xFB0.1: MBE
+0xFB0.2: IST0
+0xFB0.3: IST1
+0xFB1.0: SK0
+0xFB1.1: SK1
+0xFB1.2: SK2
+0xFB1.3: CY
+
+0xFB2: IPS (Interrupt priority select register), 4 bits
+0xFB3: PCC (Processor clock register), 4 bits
+0xFB4: IM0 (INT0 edge detect mode reg), 4 bits
+0xFB5: IM1 (INT1 edge detect mode reg), 4 bits (only bit 0)
+0xFB6: IM2 (INT2 edge detect mode reg), 4 bits (only bit 0/1)
+0xFB7: SCC (System control reg), 4 bits or 1 bits (bit 0/3), rw
+
+0xFB8: INTA
+0xFB8.0: IRQBT
+0xFB8.1: IEBT
+0xFB8.2: IRQ4
+0xFB8.3: IE4
+
+0xFBA: INTC
+0xFBA.0: IRQW
+0xFBA.1: IEW
+
+0xFBC: INTE
+0xFBC.0: IRQT0
+0xFBC.1: IET0
+0xFBC.2: IRQT1
+0xFBC.3: IET1
+
+0xFBD: INTF
+0xFBD.0: IRQCSI
+0xFBD.1: IECSI
+
+0xFBE: INTG
+0xFBE.0: IRQ0
+0xFBE.1: IE0
+0xFBE.2: IRQ1
+0xFBE.3: IE1
+
+0xFBF: INTH
+0xFBF.0: IRQ2
+0xFBF.1: IE2
+
+0xFC0: BSB0 (bit sequential buffer 0)
+0xFC1: BSB1 (bit sequential buffer 1)
+0xFC2: BSB2 (bit sequential buffer 2)
+0xFC3: BSB3 (bit sequential buffer 3)
+
+0xFCF: SOS (Suboscillation circuit control register)
+
+0xFD0: CLOM (clock output mode)
+0xFD8: ADM (A/D conversion mode register)
+0xFD8.2: EOC
+0xFD8.3: SOC
+0xFD9.0: ADM4
+0xFD9.1: ADM5
+0xFD9.2: ADM6
+0xFD9.3: ADEN
+
+0xFDA: SA (SA?)
+
+0xFDC: POGA (pull-up resistor specification group A)
+
+0xFE0: CSIM (Serial operation mode register)
+0xFE1.3: CSIE
+
+0xFE2: SBC (SBI control register)
+0xFE2.0: RELT
+0xFE2.1: CMDT
+
+0xFE4: SIO (serial IO register)
+
+0xFE8: PMGA (port mode register group A)
+0xFEC: PMGB (port mode register group B)
+
+0xFF0: PORT0
+0xFF0.1: SCKP
+0xFF1: PORT1
+0xFF2: PORT2
+0xFF3: PORT3
+0xFF4: PORT4
+0xFF5: PORT5
+0xFF6: PORT6 (is it 0xFE6 instead?)
+0xFF6.0: KR0
+0xFF6.1: KR1
+0xFF6.2: KR2
+0xFF6.3: KR3
+0xFFB: PORT11
