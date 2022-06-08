@@ -246,6 +246,51 @@ def get_known_codelocs():
     locs[0x5CB] = "INTCSI"
     locs[0x5E3] = "INTT0"
 
+    # based on disassembly
+    locs[0xd1c] = "assert_eeprom_cs"
+    locs[0x50f] = "check_environment"
+    locs[0x563] = "initialize_eeprom"
+    locs[0x67e] = "initialize_gpio_and_interrupts"
+    locs[0x69c] = "reconfigure_timers"
+    locs[0x6b1] = "set_0e_to_5"
+    locs[0x6b7] = "reset_basic_timer"
+    locs[0x6e9] = "get_var_30"
+    locs[0xb96] = "sync_eeprom_to_bank_1"
+    locs[0xbd8] = "read_eeprom_to_bank_1"
+    locs[0xc06] = "validate_eeprom_bank_1"
+    locs[0xc20] = "validate_eeprom_single_load"
+    locs[0xc51] = "write_eeprom_from_bank_1"
+    locs[0xc66] = "write_eeprom_four_writes"
+    locs[0xc90] = "send_eeprom_ewen"
+    locs[0xc98] = "send_eeprom_ewds"
+    locs[0xca7] = "send_eeprom_command"
+    locs[0xccd] = "send_eeprom_data"
+    locs[0xce9] = "read_eeprom_reply"
+    locs[0xd07] = "get_eeprom_symbols"
+    locs[0xd2e] = "adc_start_read"
+    locs[0xd3b] = "adc_finish_read"
+
+    locs[0xd43] = "really_get_var_30"
+    locs[0xd95] = "do_bank1_magic"
+    locs[0xe21] = "process_magic_lower"
+    locs[0xe62] = "process_magic_upper"
+    locs[0xeaa] = "magic_table_add"
+    locs[0xed1] = "magic_table_subtract"
+    locs[0xef8] = "read_bank1"
+    locs[0xeff] = "write_bank1"
+    locs[0xf06] = "copy_16bit"
+    locs[0xf48] = "add_16bit"
+    locs[0xf57] = "subtract_16bit"
+    locs[0xf6c] = "increment_xa"
+
+    locs[0x1000] = "data_table_1000"
+    locs[0x1078] = "data_indices_1078"
+    locs[0x1080] = "load_table_index"
+    locs[0x1094] = "load_table"
+    locs[0x109f] = "load_from_table_10a8"
+    locs[0x10a8] = "data_table_10a8"
+
+
     return locs
 
 def get_known_datalocs():

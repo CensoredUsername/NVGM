@@ -74,32 +74,32 @@
 
     ; FUNCTION RESET CALLS
         ; sub_0580,
-        ; sub_0c06,
-        ; sub_050f,
-        ; sub_0c90,
+        ; validate_eeprom_bank_1,
+        ; check_environment,
+        ; send_eeprom_ewen,
         ; sub_0418,
-        ; sub_0c98,
+        ; send_eeprom_ewds,
         ; sub_0598,
         ; sub_0399,
-        ; sub_069c,
+        ; reconfigure_timers,
         ; sub_0198,
         ; sub_01a5,
         ; sub_05ab,
         ; sub_05b1,
-        ; sub_06b1,
-        ; sub_06b7,
+        ; set_0e_to_5,
+        ; reset_basic_timer,
         ; sub_05b7,
         ; sub_06bc,
-        ; sub_0d43,
-        ; sub_0c51,
+        ; really_get_var_30,
+        ; write_eeprom_from_bank_1,
         ; sub_05d2,
         ; sub_06d5,
-        ; sub_0563,
+        ; initialize_eeprom,
         ; sub_02e4,
-        ; sub_0c66,
+        ; write_eeprom_four_writes,
         ; sub_03f9,
-        ; sub_067e,
-        ; sub_0eff
+        ; initialize_gpio_and_interrupts,
+        ; write_bank1
 0080:    9c b2      RESET: DI
 0082:       78             MOV A, #8
 0083:    93 85             MOV [BTM/?85], A
@@ -128,10 +128,10 @@
 00a7:    b5 85             SET1 [BTM.3/?85.3]
 00a9:    89 00             MOV XA, #0
 00ab:    92 80             MOV [SP/?80], XA
-00ad: ab 46 7e             CALL sub_067e
-00b0: ab 45 0f             CALL sub_050f
-00b3: ab 45 63             CALL sub_0563
-00b6: ab 46 9c             CALL sub_069c
+00ad: ab 46 7e             CALL initialize_gpio_and_interrupts
+00b0: ab 45 0f             CALL check_environment
+00b3: ab 45 63             CALL initialize_eeprom
+00b6: ab 46 9c             CALL reconfigure_timers
 00b9:    9d 9c             EI IET0
 00bb:    9d b2             EI
 00bd:    9c 90   lbl_00bd: CLR1 [MBE]
@@ -150,7 +150,7 @@
 00d2:    93 09             MOV [?09], A
 00d4:       74             MOV A, #4
 00d5:    93 08             MOV [?08], A
-00d7: ab 46 b1   lbl_00d7: CALL sub_06b1
+00d7: ab 46 b1   lbl_00d7: CALL set_0e_to_5
 00da:    b6 2d             SKF [?2D.3]
 00dc:    51 77             BRCB lbl_0177
 00de:    bf c0             SKT [PORT0.0]
@@ -159,12 +159,12 @@
 00e4:       f2             BR lbl_00d7
 00e5: ab 44 18             CALL sub_0418
 00e8:    51 77             BRCB lbl_0177
-00ea: ab 46 b1             CALL sub_06b1
+00ea: ab 46 b1             CALL set_0e_to_5
 00ed:    bf eb             SKT [PORT11.2]
 00ef:    51 77             BRCB lbl_0177
 00f1: ab 41 a5             CALL sub_01a5
 00f4:    51 77             BRCB lbl_0177
-00f6: ab 46 b1             CALL sub_06b1
+00f6: ab 46 b1             CALL set_0e_to_5
 00f9:    89 64             MOV XA, #64
 00fb:    92 3a             MOV [?3A], XA
 00fd:    95 4a             SET1 [?4A.1]
@@ -174,12 +174,12 @@
 0105:    51 2c             BRCB lbl_012c
 0107:    96 4a             SKF [?4A.1]
 0109:       f5             BR lbl_00ff
-010a: ab 46 b1             CALL sub_06b1
+010a: ab 46 b1             CALL set_0e_to_5
 010d:    89 32             MOV XA, #32
 010f:    92 3c             MOV [?3C], XA
 0111:    a5 4a             SET1 [?4A.2]
 0113:       0d             BR lbl_0121
-0114: ab 46 b1   lbl_0114: CALL sub_06b1
+0114: ab 46 b1   lbl_0114: CALL set_0e_to_5
 0117:    89 00             MOV XA, #0
 0119:    92 3a             MOV [?3A], XA
 011b:    89 64             MOV XA, #64
@@ -187,7 +187,7 @@
 011f:    a5 4a             SET1 [?4A.2]
 0121:    b6 2d   lbl_0121: SKF [?2D.3]
 0123:       08             BR lbl_012c
-0124: ab 46 b1             CALL sub_06b1
+0124: ab 46 b1             CALL set_0e_to_5
 0127:    a6 4a             SKF [?4A.2]
 0129:       f7             BR lbl_0121
 012a:    51 77             BRCB lbl_0177
@@ -195,7 +195,7 @@
 012e:    92 3a             MOV [?3A], XA
 0130:    89 00             MOV XA, #0
 0132:    92 3c             MOV [?3C], XA
-0134: ab 46 b1   lbl_0134: CALL sub_06b1
+0134: ab 46 b1   lbl_0134: CALL set_0e_to_5
 0137:    b7 2d             SKT [?2D.3]
 0139:       01             BR lbl_013b
 013a:       f9             BR lbl_0134
@@ -211,11 +211,11 @@
 014d:    89 01             MOV XA, #1
 014f:    92 88             MOV [?88], XA
 0151:    9c 90             CLR1 [MBE]
-0153: ab 46 b1             CALL sub_06b1
+0153: ab 46 b1             CALL set_0e_to_5
 0156:    89 32             MOV XA, #32
 0158:    92 36             MOV [?36], XA
 015a:    85 4a             SET1 [?4A.0]
-015c: ab 46 b1   lbl_015c: CALL sub_06b1
+015c: ab 46 b1   lbl_015c: CALL set_0e_to_5
 015f:    86 4a             SKF [?4A.0]
 0161:       fa             BR lbl_015c
 0162: ab 41 98             CALL sub_0198
@@ -225,12 +225,12 @@
 016b:    92 3e             MOV [?3E], XA
 016d:    92 60             MOV [?60], XA
 016f:    b4 4b             CLR1 [?4B.3]
-0171: ab 46 b1   lbl_0171: CALL sub_06b1
+0171: ab 46 b1   lbl_0171: CALL set_0e_to_5
 0174:    bf eb             SKT [PORT11.2]
 0176:       fa             BR lbl_0171
 0177:    b7 08   lbl_0177: SKT [?08.3]
 0179:    51 90             BRCB lbl_0190
-017b: ab 46 b1   lbl_017b: CALL sub_06b1
+017b: ab 46 b1   lbl_017b: CALL set_0e_to_5
 017e:    b6 08             SKF [?08.3]
 0180:       fa             BR lbl_017b
 0181:    89 64             MOV XA, #64
@@ -238,7 +238,7 @@
 0185:    a5 4a             SET1 [?4A.2]
 0187:    b6 08   lbl_0187: SKF [?08.3]
 0189:       f1             BR lbl_017b
-018a: ab 46 b1             CALL sub_06b1
+018a: ab 46 b1             CALL set_0e_to_5
 018d:    a6 4a             SKF [?4A.2]
 018f:       f7             BR lbl_0187
 0190:       70   lbl_0190: MOV A, #0
@@ -248,11 +248,11 @@
 0196:    50 bd             BRCB lbl_00bd
 
     ; FUNCTION sub_0198 CALLS
-        ; sub_06b1
+        ; set_0e_to_5
 0198:    89 fa   sub_0198: MOV XA, #FA
 019a:    92 3c             MOV [?3C], XA
 019c:    a5 4a             SET1 [?4A.2]
-019e: ab 46 b1   lbl_019e: CALL sub_06b1
+019e: ab 46 b1   lbl_019e: CALL set_0e_to_5
 01a1:    a6 4a             SKF [?4A.2]
 01a3:       fa             BR lbl_019e
 01a4:       ee             RET
@@ -323,14 +323,14 @@
 01f9: ab 43 99   lbl_01f9: CALL sub_0399
 01fc:    50 a3             BRCB lbl_00a3
 01fe:    9c b2             DI
-0200: ab 4d 43             CALL sub_0d43
+0200: ab 4d 43             CALL really_get_var_30
 0203:    52 42             BRCB lbl_0242
-0205: ab 4c 90             CALL sub_0c90
-0208: ab 46 b7             CALL sub_06b7
-020b: ab 4c 51             CALL sub_0c51
-020e: ab 4c 98             CALL sub_0c98
-0211: ab 46 b7             CALL sub_06b7
-0214: ab 4c 06             CALL sub_0c06
+0205: ab 4c 90             CALL send_eeprom_ewen
+0208: ab 46 b7             CALL reset_basic_timer
+020b: ab 4c 51             CALL write_eeprom_from_bank_1
+020e: ab 4c 98             CALL send_eeprom_ewds
+0211: ab 46 b7             CALL reset_basic_timer
+0214: ab 4c 06             CALL validate_eeprom_bank_1
 0217:    9c 88             CLR1 [IRQBT]
 0219:    9d b2             EI
 021b:       d7             SKT CY
@@ -340,12 +340,12 @@
 0222:    9c 8a             CLR1 [IRQW]
 0224:    84 2f             CLR1 [?2F.0]
 0226:    94 2f             CLR1 [?2F.1]
-0228: ab 46 b1   lbl_0228: CALL sub_06b1
+0228: ab 46 b1   lbl_0228: CALL set_0e_to_5
 022b:    9f 8a             SKTCLR [IRQW]
 022d:       fa             BR lbl_0228
 022e:    85 2f             SET1 [?2F.0]
 0230:    95 2f             SET1 [?2F.1]
-0232: ab 46 b1   lbl_0232: CALL sub_06b1
+0232: ab 46 b1   lbl_0232: CALL set_0e_to_5
 0235:    9f 8a             SKTCLR [IRQW]
 0237:       fa             BR lbl_0232
 0238:    84 2f             CLR1 [?2F.0]
@@ -382,14 +382,14 @@
 0277: ab 45 80             CALL sub_0580
 027a:    a2 12             MOV XA, [?12]
 027c: ab 45 80             CALL sub_0580
-027f: ab 46 b7             CALL sub_06b7
+027f: ab 46 b7             CALL reset_basic_timer
 0282:    a2 14             MOV XA, [?14]
 0284: ab 45 80             CALL sub_0580
 0287:    a2 16             MOV XA, [?16]
 0289: ab 45 80             CALL sub_0580
 028c:    a2 18             MOV XA, [?18]
 028e: ab 45 80             CALL sub_0580
-0291: ab 46 b7             CALL sub_06b7
+0291: ab 46 b7             CALL reset_basic_timer
 0294:    a2 1a             MOV XA, [?1A]
 0296: ab 45 80             CALL sub_0580
 0299:    a2 1c             MOV XA, [?1C]
@@ -397,27 +397,27 @@
 029e:    a3 1e             MOV A, [?1E]
 02a0:    9a 09             MOV X, #0
 02a2: ab 45 80             CALL sub_0580
-02a5: ab 46 b7             CALL sub_06b7
+02a5: ab 46 b7             CALL reset_basic_timer
 02a8:    a3 1f             MOV A, [?1F]
 02aa:    9a 09             MOV X, #0
 02ac: ab 45 80             CALL sub_0580
 02af: ab 45 b1             CALL sub_05b1
-02b2: ab 46 b7             CALL sub_06b7
+02b2: ab 46 b7             CALL reset_basic_timer
 02b5:    a2 6c             MOV XA, [?6C]
 02b7: ab 45 80             CALL sub_0580
 02ba:    a2 6e             MOV XA, [?6E]
 02bc: ab 45 80             CALL sub_0580
 02bf: ab 45 ab             CALL sub_05ab
-02c2: ab 46 b7             CALL sub_06b7
+02c2: ab 46 b7             CALL reset_basic_timer
 02c5: ab 45 d2             CALL sub_05d2
 02c8: ab 46 d5             CALL sub_06d5
 02cb:    52 5b             BRCB lbl_025b
 02cd: ab 46 bc   lbl_02cd: CALL sub_06bc
 02d0: ab 42 e4             CALL sub_02e4
-02d3: ab 46 b7             CALL sub_06b7
+02d3: ab 46 b7             CALL reset_basic_timer
 02d6: ab 45 d2             CALL sub_05d2
 02d9: ab 46 d5             CALL sub_06d5
-02dc: ab 46 b7   lbl_02dc: CALL sub_06b7
+02dc: ab 46 b7   lbl_02dc: CALL reset_basic_timer
 02df:    be c0             SKF [PORT0.0]
 02e1:    50 bd             BRCB lbl_00bd
 02e3:       f8             BR lbl_02dc
@@ -425,12 +425,12 @@
     ; FUNCTION sub_02e4 CALLS
         ; sub_0580,
         ; sub_05ab,
-        ; sub_06b7
+        ; reset_basic_timer
 02e4:    99 11   sub_02e4: SEL MB1
 02e6:    8b 00             MOV HL, #0
 02e8:    9a ff             MOV B, #F
 02ea:    9a 7e   lbl_02ea: MOV C, #7
-02ec: ab 46 b7   lbl_02ec: CALL sub_06b7
+02ec: ab 46 b7   lbl_02ec: CALL reset_basic_timer
 02ef:    9d 90             SET1 [MBE]
 02f1:    aa 18             MOV XA, @HL
 02f3:    9c 90             CLR1 [MBE]
@@ -452,45 +452,45 @@
 030c:    50 bd             BRCB lbl_00bd
 030e:    89 64             MOV XA, #64
 0310:    92 3a             MOV [?3A], XA
-0312: ab 46 b1   lbl_0312: CALL sub_06b1
+0312: ab 46 b1   lbl_0312: CALL set_0e_to_5
 0315:    b7 2d             SKT [?2D.3]
 0317:       fa             BR lbl_0312
 0318:    9d 90             SET1 [MBE]
 031a:    99 10             SEL MB0
 031c:    8b e0             MOV HL, #E0
 031e:    a2 10             MOV XA, [?10]
-0320: ab 4e ff             CALL sub_0eff
+0320: ab 4e ff             CALL write_bank1
 0323:       8a             INCS HL
 0324:       8a             INCS HL
 0325:    a2 12             MOV XA, [?12]
-0327: ab 4e ff             CALL sub_0eff
+0327: ab 4e ff             CALL write_bank1
 032a:       8a             INCS HL
 032b:       8a             INCS HL
 032c:    a2 14             MOV XA, [?14]
-032e: ab 4e ff             CALL sub_0eff
+032e: ab 4e ff             CALL write_bank1
 0331:       8a             INCS HL
 0332:       8a             INCS HL
 0333:    a2 16             MOV XA, [?16]
-0335: ab 4e ff             CALL sub_0eff
+0335: ab 4e ff             CALL write_bank1
 0338:       8a             INCS HL
 0339:       8a             INCS HL
 033a:    a2 18             MOV XA, [?18]
-033c: ab 4e ff             CALL sub_0eff
+033c: ab 4e ff             CALL write_bank1
 033f:       8a             INCS HL
 0340:       8a             INCS HL
 0341:    a2 1a             MOV XA, [?1A]
-0343: ab 4e ff             CALL sub_0eff
+0343: ab 4e ff             CALL write_bank1
 0346:       8a             INCS HL
 0347:       8a             INCS HL
 0348:    a2 1c             MOV XA, [?1C]
-034a: ab 4e ff             CALL sub_0eff
+034a: ab 4e ff             CALL write_bank1
 034d:    9c 90             CLR1 [MBE]
 034f:    9c b2             DI
-0351: ab 4c 90             CALL sub_0c90
+0351: ab 4c 90             CALL send_eeprom_ewen
 0354:    9d 90             SET1 [MBE]
 0356:    8b e0             MOV HL, #E0
-0358: ab 4c 66             CALL sub_0c66
-035b: ab 4c 98             CALL sub_0c98
+0358: ab 4c 66             CALL write_eeprom_four_writes
+035b: ab 4c 98             CALL send_eeprom_ewds
 035e:    9c 90             CLR1 [MBE]
 0360:    9c 88             CLR1 [IRQBT]
 0362:    b5 85             SET1 [BTM.3/?85.3]
@@ -500,7 +500,7 @@
 036b:    99 10             SEL MB0
 036d:    8b 00             MOV HL, #0
 036f:    9a 7e   lbl_036f: MOV C, #7
-0371: ab 46 b7   lbl_0371: CALL sub_06b7
+0371: ab 46 b7   lbl_0371: CALL reset_basic_timer
 0374:    9d 90             SET1 [MBE]
 0376:    aa 18             MOV XA, @HL
 0378:    9c 90             CLR1 [MBE]
@@ -517,15 +517,15 @@
 0389:    53 6f             BRCB lbl_036f
 038b: ab 45 d2             CALL sub_05d2
 038e: ab 46 d5             CALL sub_06d5
-0391: ab 46 b7   lbl_0391: CALL sub_06b7
+0391: ab 46 b7   lbl_0391: CALL reset_basic_timer
 0394:    be c0             SKF [PORT0.0]
 0396:    50 bd             BRCB lbl_00bd
 0398:       f8             BR lbl_0391
 
     ; FUNCTION sub_0399 CALLS
         ; sub_03f9,
-        ; sub_06b1,
-        ; sub_0eff
+        ; set_0e_to_5,
+        ; write_bank1
 0399:    9d 90   sub_0399: SET1 [MBE]
 039b:    99 10             SEL MB0
 039d:    9a ff             MOV B, #F
@@ -534,34 +534,34 @@
 03a4:    53 ee             BRCB lbl_03ee
 03a6:    89 64             MOV XA, #64
 03a8:    92 3a             MOV [?3A], XA
-03aa: ab 46 b1   lbl_03aa: CALL sub_06b1
+03aa: ab 46 b1   lbl_03aa: CALL set_0e_to_5
 03ad:    b7 2d             SKT [?2D.3]
 03af:       fa             BR lbl_03aa
 03b0:    85 2f             SET1 [?2F.0]
 03b2:    95 2f             SET1 [?2F.1]
 03b4:    9a 0a             MOV L, #0
 03b6:    a2 10             MOV XA, [?10]
-03b8: ab 4e ff             CALL sub_0eff
+03b8: ab 4e ff             CALL write_bank1
 03bb:       c2             INCS L
 03bc:       c2             INCS L
 03bd:    a2 12             MOV XA, [?12]
-03bf: ab 4e ff             CALL sub_0eff
+03bf: ab 4e ff             CALL write_bank1
 03c2:       c2             INCS L
 03c3:       c2             INCS L
 03c4:    a2 14             MOV XA, [?14]
-03c6: ab 4e ff             CALL sub_0eff
+03c6: ab 4e ff             CALL write_bank1
 03c9:       c2             INCS L
 03ca:       c2             INCS L
 03cb:    a2 16             MOV XA, [?16]
-03cd: ab 4e ff             CALL sub_0eff
+03cd: ab 4e ff             CALL write_bank1
 03d0:       c2             INCS L
 03d1:       c2             INCS L
 03d2:    a2 18             MOV XA, [?18]
-03d4: ab 4e ff             CALL sub_0eff
+03d4: ab 4e ff             CALL write_bank1
 03d7:       c2             INCS L
 03d8:       c2             INCS L
 03d9:    a2 1a             MOV XA, [?1A]
-03db: ab 4e ff             CALL sub_0eff
+03db: ab 4e ff             CALL write_bank1
 03de:       c3             INCS H
 03df:       60             NOP
 03e0:       cf             DECS B
@@ -580,12 +580,12 @@
 03f8:       ee             RET
 
     ; FUNCTION sub_03f9 CALLS
-        ; sub_06b1
+        ; set_0e_to_5
 03f9:       70   sub_03f9: MOV A, #0
 03fa:    93 09             MOV [?09], A
 03fc:       74             MOV A, #4
 03fd:    93 08             MOV [?08], A
-03ff: ab 46 b1   lbl_03ff: CALL sub_06b1
+03ff: ab 46 b1   lbl_03ff: CALL set_0e_to_5
 0402:    bf c0             SKT [PORT0.0]
 0404:       0e             BR lbl_0413
 0405:    bf c0             SKT [PORT0.0]
@@ -768,15 +768,15 @@
 050d:       f4             BR lbl_0502
 050e:       ee             RET
 
-    ; FUNCTION sub_050f CALLS
-        ; sub_0d3b,
-        ; sub_0d2e,
-        ; sub_050f
-050f:    9c 90   sub_050f: CLR1 [MBE]
+    ; FUNCTION check_environment CALLS
+        ; adc_finish_read,
+        ; adc_start_read,
+        ; check_environment
+050f:    9c 90 check_environment: CLR1 [MBE]
 0511:    b5 85             SET1 [BTM.3/?85.3]
 0513:    9a 39   lbl_0513: MOV X, #3
-0515: ab 4d 2e             CALL sub_0d2e
-0518: ab 4d 3b             CALL sub_0d3b
+0515: ab 4d 2e             CALL adc_start_read
+0518: ab 4d 3b             CALL adc_finish_read
 051b:    8d a7             MOV DE, #A7
 051d:       e6             CLR1 CY
 051e:    aa fc             SUBC XA, DE
@@ -785,8 +785,8 @@
 0522:       f0             BR lbl_0513
 0523:    9a 0e             MOV C, #0
 0525:    9a 09             MOV X, #0
-0527: ab 4d 2e             CALL sub_0d2e
-052a: ab 4d 3b             CALL sub_0d3b
+0527: ab 4d 2e             CALL adc_start_read
+052a: ab 4d 3b             CALL adc_finish_read
 052d:    8d c3             MOV DE, #C3
 052f:       e6             CLR1 CY
 0530:    aa fc             SUBC XA, DE
@@ -796,8 +796,8 @@
 0536:    99 41             OR A, #1
 0538:    99 76             MOV C, A
 053a:    9a 19   lbl_053a: MOV X, #1
-053c: ab 4d 2e             CALL sub_0d2e
-053f: ab 4d 3b             CALL sub_0d3b
+053c: ab 4d 2e             CALL adc_start_read
+053f: ab 4d 3b             CALL adc_finish_read
 0542:    8d c3             MOV DE, #C3
 0544:       e6             CLR1 CY
 0545:    aa fc             SUBC XA, DE
@@ -818,18 +818,18 @@
 055e:       ce   lbl_055e: DECS C
 055f:       01             BR lbl_0561
 0560:       ee             RET
-0561:    55 0f   lbl_0561: BRCB sub_050f
+0561:    55 0f   lbl_0561: BRCB check_environment
 
-    ; FUNCTION sub_0563 CALLS
-        ; sub_0bd8,
-        ; sub_0563,
-        ; sub_0c06
-0563:    9c 90   sub_0563: CLR1 [MBE]
-0565: ab 4b d8             CALL sub_0bd8
-0568: ab 4c 06             CALL sub_0c06
+    ; FUNCTION initialize_eeprom CALLS
+        ; read_eeprom_to_bank_1,
+        ; initialize_eeprom,
+        ; validate_eeprom_bank_1
+0563:    9c 90 initialize_eeprom: CLR1 [MBE]
+0565: ab 4b d8             CALL read_eeprom_to_bank_1
+0568: ab 4c 06             CALL validate_eeprom_bank_1
 056b:       d7             SKT CY
 056c:       01             BR lbl_056e
-056d:       f5             BR sub_0563
+056d:       f5             BR initialize_eeprom
 056e:    9c 90   lbl_056e: CLR1 [MBE]
 0570:    89 ff             MOV XA, #FF
 0572:    92 2c             MOV [?2C], XA
@@ -846,7 +846,7 @@
 
     ; FUNCTION sub_0580 CALLS
         ; sub_05c1,
-        ; sub_06b1,
+        ; set_0e_to_5,
         ; sub_05d6,
         ; sub_05b7
 0580:    aa 46   sub_0580: XCH XA, BC
@@ -862,7 +862,7 @@
 
     ; FUNCTION sub_0598 CALLS
         ; sub_05c1,
-        ; sub_06b1,
+        ; set_0e_to_5,
         ; sub_05d6,
         ; sub_05b7
 0598:    aa 46   sub_0598: XCH XA, BC
@@ -876,7 +876,7 @@
 
     ; FUNCTION sub_05ab CALLS
         ; sub_05c1,
-        ; sub_06b1,
+        ; set_0e_to_5,
         ; sub_05b7
 05ab:    89 0d   sub_05ab: MOV XA, #D
 05ad: ab 45 b7             CALL sub_05b7
@@ -884,7 +884,7 @@
 
     ; FUNCTION sub_05b1 CALLS
         ; sub_05c1,
-        ; sub_06b1,
+        ; set_0e_to_5,
         ; sub_05b7
 05b1:    89 20   sub_05b1: MOV XA, #20
 05b3: ab 45 b7             CALL sub_05b7
@@ -892,7 +892,7 @@
 
     ; FUNCTION sub_05b7 CALLS
         ; sub_05c1,
-        ; sub_06b1
+        ; set_0e_to_5
 05b7:    aa 54   sub_05b7: MOV DE, XA
 05b9:       e6             CLR1 CY
 05ba:    aa dc             ADDC XA, DE
@@ -901,12 +901,12 @@
 
     ; FUNCTION sub_05c1 CALLS
         ; sub_05c1,
-        ; sub_06b1
+        ; set_0e_to_5
 05c1:    86 4c   sub_05c1: SKF [?4C.0]
 05c3:       fd             BR sub_05c1
 05c4:    85 4c             SET1 [?4C.0]
 05c6:    92 e4             MOV [SIO/?E4], XA
-05c8:    56 b1             BRCB sub_06b1
+05c8:    56 b1             BRCB set_0e_to_5
 05ca:       ee             RET ; DEAD
 
     ; FUNCTION INTCSI
@@ -941,7 +941,7 @@
         ; sub_0653,
         ; sub_0817,
         ; sub_0774,
-        ; sub_0b96,
+        ; sync_eeprom_to_bank_1,
         ; sub_0b77
 05e3:       49      INTT0: PUSH XA
 05e4:       4f             PUSH BC
@@ -974,7 +974,7 @@
 0619:       0d             BR lbl_0627
 061a:    96 49   lbl_061a: SKF [?49.1]
 061c:       04             BR lbl_0621
-061d: ab 4b 96             CALL sub_0b96
+061d: ab 4b 96             CALL sync_eeprom_to_bank_1
 0620:       06             BR lbl_0627
 0621: ab 47 41   lbl_0621: CALL sub_0741
 0624: ab 47 74             CALL sub_0774
@@ -1037,8 +1037,8 @@
 067b:    92 36   lbl_067b: MOV [?36], XA
 067d:       ee             RET
 
-    ; FUNCTION sub_067e
-067e:       70   sub_067e: MOV A, #0
+    ; FUNCTION initialize_gpio_and_interrupts
+067e:       70 initialize_gpio_and_interrupts: MOV A, #0
 067f:    93 b8             MOV [INTA/?B8], A
 0681:    93 ba             MOV [INTC/?BA], A
 0683:    93 bc             MOV [INTE/?BC], A
@@ -1056,8 +1056,8 @@
 0699:    92 ec             MOV [PMGB/?EC], XA
 069b:       ee             RET
 
-    ; FUNCTION sub_069c
-069c:    89 00   sub_069c: MOV XA, #0
+    ; FUNCTION reconfigure_timers
+069c:    89 00 reconfigure_timers: MOV XA, #0
 069e:    92 98             MOV [WM/?98], XA
 06a0:    89 fa             MOV XA, #FA
 06a2:    92 a6             MOV [TMOD0/?A6], XA
@@ -1070,14 +1070,14 @@
 06ae:    b5 8b             SET1 [WDTM.3/?8B.3] ; DEAD
 06b0:       ee             RET ; DEAD
 
-    ; FUNCTION sub_06b1
-06b1:    9c 90   sub_06b1: CLR1 [MBE]
+    ; FUNCTION set_0e_to_5
+06b1:    9c 90 set_0e_to_5: CLR1 [MBE]
 06b3:       75             MOV A, #5
 06b4:    93 0e             MOV [?0E], A
 06b6:       ee             RET
 
-    ; FUNCTION sub_06b7
-06b7:    9c 90   sub_06b7: CLR1 [MBE]
+    ; FUNCTION reset_basic_timer
+06b7:    9c 90 reset_basic_timer: CLR1 [MBE]
 06b9:    b5 85             SET1 [BTM.3/?85.3]
 06bb:       ee             RET
 
@@ -1097,20 +1097,20 @@
 06d4:       ee             RET
 
     ; FUNCTION sub_06d5 CALLS
-        ; sub_069c
+        ; reconfigure_timers
 06d5:    9c b2   sub_06d5: DI
 06d7:    9c 9d             DI IECSI
 06d9:    89 01             MOV XA, #1
 06db:    92 e0             MOV [CSIM/?E0], XA
-06dd: ab 46 9c             CALL sub_069c
+06dd: ab 46 9c             CALL reconfigure_timers
 06e0:    9c 88             CLR1 [IRQBT]
 06e2:    9d 9c             EI IET0
 06e4:    9d 98             EI IEBT
 06e6:    9d b2             EI
 06e8:       ee             RET
 
-    ; FUNCTION sub_06e9
-06e9:    a3 30   sub_06e9: MOV A, [?30]
+    ; FUNCTION get_var_30
+06e9:    a3 30 get_var_30: MOV A, [?30]
 06eb:       e0             RETS
 
     ; FUNCTION sub_06ec
@@ -1205,7 +1205,7 @@
     ; FUNCTION sub_0774 CALLS
         ; sub_07f1,
         ; sub_01cc,
-        ; sub_109f
+        ; load_from_table_10a8
 0774:    a2 60   sub_0774: MOV XA, [?60]
 0776:    92 64             MOV [?64], XA
 0778:    8b 64             MOV HL, #64
@@ -1259,7 +1259,7 @@
 07cb:    89 3f   lbl_07cb: MOV XA, #3F
 07cd:    9a 2e             MOV C, #2
 07cf:       03             BR lbl_07d3
-07d0: ab 50 9f   lbl_07d0: CALL sub_109f
+07d0: ab 50 9f   lbl_07d0: CALL load_from_table_10a8
 07d3: ab 47 f1   lbl_07d3: CALL sub_07f1
 07d6:       60             NOP
 07d7:       60             NOP
@@ -1319,16 +1319,16 @@
 
     ; FUNCTION sub_0817 CALLS
         ; sub_0632,
-        ; sub_0d3b,
-        ; sub_0d2e
+        ; adc_finish_read,
+        ; adc_start_read
 0817:    9a 09   sub_0817: MOV X, #0
-0819: ab 4d 2e             CALL sub_0d2e
+0819: ab 4d 2e             CALL adc_start_read
 081c: ab 46 32             CALL sub_0632
-081f: ab 4d 3b             CALL sub_0d3b
+081f: ab 4d 3b             CALL adc_finish_read
 0822:    92 0a             MOV [?0A], XA
 0824:    9a 19             MOV X, #1
-0826: ab 4d 2e             CALL sub_0d2e
-0829: ab 4d 3b             CALL sub_0d3b
+0826: ab 4d 2e             CALL adc_start_read
+0829: ab 4d 3b             CALL adc_finish_read
 082c:    92 0c             MOV [?0C], XA
 082e:       ee             RET
 
@@ -1671,9 +1671,9 @@
 0a4e:       ee             RET
 
     ; FUNCTION sub_0a4f CALLS
-        ; sub_0f6c
+        ; increment_xa
 0a4f:    a2 1c   sub_0a4f: MOV XA, [?1C]
-0a51: ab 4f 6c             CALL sub_0f6c
+0a51: ab 4f 6c             CALL increment_xa
 0a54:    9a 00             SKE A, #0
 0a56:       05             BR lbl_0a5c
 0a57:    9a 01             SKE X, #0
@@ -1894,12 +1894,12 @@
 0b93:    92 3a   lbl_0b93: MOV [?3A], XA
 0b95:       ee             RET
 
-    ; FUNCTION sub_0b96 CALLS
-        ; sub_0c98,
-        ; sub_0ca7,
-        ; sub_0ce9,
-        ; sub_0d07
-0b96:    87 2c   sub_0b96: SKT [?2C.0]
+    ; FUNCTION sync_eeprom_to_bank_1 CALLS
+        ; send_eeprom_ewds,
+        ; send_eeprom_command,
+        ; read_eeprom_reply,
+        ; get_eeprom_symbols
+0b96:    87 2c sync_eeprom_to_bank_1: SKT [?2C.0]
 0b98:       ee             RET
 0b99:    86 4b             SKF [?4B.0]
 0b9b:       ee             RET
@@ -1909,9 +1909,9 @@
 0ba1:    96 4b             SKF [?4B.1]
 0ba3:       04             BR lbl_0ba8
 0ba4:    95 4b             SET1 [?4B.1]
-0ba6:    5c 98             BRCB sub_0c98
+0ba6:    5c 98             BRCB send_eeprom_ewds
 0ba8:    94 4b   lbl_0ba8: CLR1 [?4B.1]
-0baa: ab 4d 07             CALL sub_0d07
+0baa: ab 4d 07             CALL get_eeprom_symbols
 0bad:    a2 38             MOV XA, [?38]
 0baf:       49             PUSH XA
 0bb0:       64             ADDS A, #4
@@ -1925,8 +1925,8 @@
 0bbb:       4b             PUSH HL
 0bbc:    99 1f             SEL MBF
 0bbe:    9a 69             MOV X, #6
-0bc0: ab 4c a7             CALL sub_0ca7
-0bc3: ab 4c e9             CALL sub_0ce9
+0bc0: ab 4c a7             CALL send_eeprom_command
+0bc3: ab 4c e9             CALL read_eeprom_reply
 0bc6:       4a             POP HL
 0bc7:    a2 c0             MOV XA, [BSB0/?C0]
 0bc9:    99 11             SEL MB1
@@ -1939,20 +1939,20 @@
 0bd5:    aa 10             MOV @HL, XA
 0bd7:       ee             RET
 
-    ; FUNCTION sub_0bd8 CALLS
-        ; sub_06b7,
-        ; sub_0ce9,
-        ; sub_0ca7,
-        ; sub_0d07
-0bd8: ab 4d 07   sub_0bd8: CALL sub_0d07
+    ; FUNCTION read_eeprom_to_bank_1 CALLS
+        ; reset_basic_timer,
+        ; read_eeprom_reply,
+        ; send_eeprom_command,
+        ; get_eeprom_symbols
+0bd8: ab 4d 07 read_eeprom_to_bank_1: CALL get_eeprom_symbols
 0bdb:    9d 90             SET1 [MBE]
 0bdd:    8b 00             MOV HL, #0
-0bdf: ab 46 b7   lbl_0bdf: CALL sub_06b7
+0bdf: ab 46 b7   lbl_0bdf: CALL reset_basic_timer
 0be2:       4b             PUSH HL
 0be3:    99 1f             SEL MBF
 0be5:    9a 69             MOV X, #6
-0be7: ab 4c a7             CALL sub_0ca7
-0bea: ab 4c e9             CALL sub_0ce9
+0be7: ab 4c a7             CALL send_eeprom_command
+0bea: ab 4c e9             CALL read_eeprom_reply
 0bed:       4a             POP HL
 0bee:    a2 c0             MOV XA, [BSB0/?C0]
 0bf0:    99 11             SEL MB1
@@ -1970,15 +1970,15 @@
 0c03:    5b df             BRCB lbl_0bdf
 0c05:       ee             RET
 
-    ; FUNCTION sub_0c06 CALLS
-        ; sub_0c20,
-        ; sub_06b7,
-        ; sub_0d07
-0c06: ab 4d 07   sub_0c06: CALL sub_0d07
+    ; FUNCTION validate_eeprom_bank_1 CALLS
+        ; validate_eeprom_single_load,
+        ; reset_basic_timer,
+        ; get_eeprom_symbols
+0c06: ab 4d 07 validate_eeprom_bank_1: CALL get_eeprom_symbols
 0c09:    9d 90             SET1 [MBE]
 0c0b:    8b 00             MOV HL, #0
-0c0d: ab 46 b7   lbl_0c0d: CALL sub_06b7
-0c10: ab 4c 20             CALL sub_0c20
+0c0d: ab 46 b7   lbl_0c0d: CALL reset_basic_timer
+0c10: ab 4c 20             CALL validate_eeprom_single_load
 0c13:       d6             NOT1 CY
 0c14:       d7             SKT CY
 0c15:    5c 4f             BRCB lbl_0c4f
@@ -1986,20 +1986,20 @@
 0c18:       f4             BR lbl_0c0d
 0c19:       e6             CLR1 CY
 0c1a:       ee             RET
-0c1b: ab 4d 07             CALL sub_0d07 ; DEAD
+0c1b: ab 4d 07             CALL get_eeprom_symbols ; DEAD
 0c1e:    9d 90             SET1 [MBE] ; DEAD
 
-    ; FUNCTION sub_0c20 CALLS
-        ; sub_0c20,
-        ; sub_0ce9,
-        ; sub_0d1c,
-        ; sub_0ca7
-0c20:       4b   sub_0c20: PUSH HL
+    ; FUNCTION validate_eeprom_single_load CALLS
+        ; validate_eeprom_single_load,
+        ; read_eeprom_reply,
+        ; assert_eeprom_cs,
+        ; send_eeprom_command
+0c20:       4b validate_eeprom_single_load: PUSH HL
 0c21:    99 1f             SEL MBF
-0c23: ab 4d 1c             CALL sub_0d1c
+0c23: ab 4d 1c             CALL assert_eeprom_cs
 0c26:    9a 69             MOV X, #6
-0c28: ab 4c a7             CALL sub_0ca7
-0c2b: ab 4c e9             CALL sub_0ce9
+0c28: ab 4c a7             CALL send_eeprom_command
+0c2b: ab 4c e9             CALL read_eeprom_reply
 0c2e:       4a             POP HL
 0c2f:    a2 c0             MOV XA, [BSB0/?C0]
 0c31:    99 11             SEL MB1
@@ -2020,37 +2020,37 @@
 0c48:       80             SKE A, @HL
 0c49:       05             BR lbl_0c4f
 0c4a:       c2             INCS L
-0c4b:    5c 20             BRCB sub_0c20
+0c4b:    5c 20             BRCB validate_eeprom_single_load
 0c4d:       e6             CLR1 CY
 0c4e:       ee             RET
 0c4f:       e7   lbl_0c4f: SET1 CY
 0c50:       ee             RET
 
-    ; FUNCTION sub_0c51 CALLS
-        ; sub_06b7,
-        ; sub_0c66,
-        ; sub_0d07
-0c51: ab 4d 07   sub_0c51: CALL sub_0d07
+    ; FUNCTION write_eeprom_from_bank_1 CALLS
+        ; reset_basic_timer,
+        ; write_eeprom_four_writes,
+        ; get_eeprom_symbols
+0c51: ab 4d 07 write_eeprom_from_bank_1: CALL get_eeprom_symbols
 0c54:    9d 90             SET1 [MBE]
 0c56:    8b 00             MOV HL, #0
-0c58: ab 46 b7   lbl_0c58: CALL sub_06b7
-0c5b: ab 4c 66             CALL sub_0c66
+0c58: ab 46 b7   lbl_0c58: CALL reset_basic_timer
+0c5b: ab 4c 66             CALL write_eeprom_four_writes
 0c5e:       c3             INCS H
 0c5f:       f8             BR lbl_0c58
 0c60:       ee             RET
-0c61: ab 4d 07             CALL sub_0d07 ; DEAD
+0c61: ab 4d 07             CALL get_eeprom_symbols ; DEAD
 0c64:    9d 90             SET1 [MBE] ; DEAD
 
-    ; FUNCTION sub_0c66 CALLS
-        ; sub_0d1c,
-        ; sub_0ccd,
-        ; sub_0c66,
-        ; sub_0ca7
-0c66:       4b   sub_0c66: PUSH HL
+    ; FUNCTION write_eeprom_four_writes CALLS
+        ; assert_eeprom_cs,
+        ; send_eeprom_data,
+        ; write_eeprom_four_writes,
+        ; send_eeprom_command
+0c66:       4b write_eeprom_four_writes: PUSH HL
 0c67:    99 1f             SEL MBF
-0c69: ab 4d 1c             CALL sub_0d1c
+0c69: ab 4d 1c             CALL assert_eeprom_cs
 0c6c:    9a 59             MOV X, #5
-0c6e: ab 4c a7             CALL sub_0ca7
+0c6e: ab 4c a7             CALL send_eeprom_command
 0c71:       4a             POP HL
 0c72:       4b             PUSH HL
 0c73:    99 11             SEL MB1
@@ -2063,36 +2063,36 @@
 0c7f:    aa 18             MOV XA, @HL
 0c81:    99 1f             SEL MBF
 0c83:    92 c2             MOV [BSB2/?C2], XA
-0c85: ab 4c cd             CALL sub_0ccd
+0c85: ab 4c cd             CALL send_eeprom_data
 0c88:       4a             POP HL
 0c89:       c2             INCS L
 0c8a:       c2             INCS L
 0c8b:       c2             INCS L
 0c8c:       c2             INCS L
-0c8d:    5c 66             BRCB sub_0c66
+0c8d:    5c 66             BRCB write_eeprom_four_writes
 0c8f:       ee             RET
 
-    ; FUNCTION sub_0c90 CALLS
-        ; sub_0ca7,
-        ; sub_0d07
-0c90: ab 4d 07   sub_0c90: CALL sub_0d07
+    ; FUNCTION send_eeprom_ewen CALLS
+        ; send_eeprom_command,
+        ; get_eeprom_symbols
+0c90: ab 4d 07 send_eeprom_ewen: CALL get_eeprom_symbols
 0c93:    9a fb             MOV H, #F
 0c95:    9a 49             MOV X, #4
 0c97:       07             BR lbl_0c9f
 
-    ; FUNCTION sub_0c98 CALLS
-        ; sub_0ca7,
-        ; sub_0d07
-0c98: ab 4d 07   sub_0c98: CALL sub_0d07
+    ; FUNCTION send_eeprom_ewds CALLS
+        ; send_eeprom_command,
+        ; get_eeprom_symbols
+0c98: ab 4d 07 send_eeprom_ewds: CALL get_eeprom_symbols
 0c9b:    9a 0b             MOV H, #0
 0c9d:    9a 49             MOV X, #4
-0c9f: ab 4c a7   lbl_0c9f: CALL sub_0ca7
+0c9f: ab 4c a7   lbl_0c9f: CALL send_eeprom_command
 0ca2:    99 7c             MOV A, E
 0ca4:    93 f2             OUT PORT2, A
 0ca6:       ee             RET
 
-    ; FUNCTION sub_0ca7
-0ca7:    99 79   sub_0ca7: MOV A, X
+    ; FUNCTION send_eeprom_command
+0ca7:    99 79 send_eeprom_command: MOV A, X
 0ca9:    93 c3             MOV [BSB3/?C3], A
 0cab:    99 7b             MOV A, H
 0cad:    93 c2             MOV [BSB2/?C2], A
@@ -2114,8 +2114,8 @@
 0cca:    5c b5             BRCB lbl_0cb5
 0ccc:       ee             RET
 
-    ; FUNCTION sub_0ccd
-0ccd:    9a fa   sub_0ccd: MOV L, #F
+    ; FUNCTION send_eeprom_data
+0ccd:    9a fa send_eeprom_data: MOV L, #F
 0ccf:    bf 40   lbl_0ccf: SKT [FC0].@L
 0cd1:       03             BR lbl_0cd5
 0cd2:    99 7d             MOV A, D
@@ -2132,8 +2132,8 @@
 0ce6:    93 f2             OUT PORT2, A
 0ce8:       ee             RET
 
-    ; FUNCTION sub_0ce9
-0ce9:    9a fa   sub_0ce9: MOV L, #F
+    ; FUNCTION read_eeprom_reply
+0ce9:    9a fa read_eeprom_reply: MOV L, #F
 0ceb:    99 7e   lbl_0ceb: MOV A, C
 0ced:    93 f2             OUT PORT2, A
 0cef:    99 7f             MOV A, B
@@ -2151,8 +2151,8 @@
 0d04:    93 f2             OUT PORT2, A
 0d06:       ee             RET
 
-    ; FUNCTION sub_0d07
-0d07:    a3 2e   sub_0d07: MOV A, [?2E]
+    ; FUNCTION get_eeprom_symbols
+0d07:    a3 2e get_eeprom_symbols: MOV A, [?2E]
 0d09:    99 31             AND A, #1
 0d0b:    99 74             MOV E, A
 0d0d:    99 42             OR A, #2
@@ -2164,8 +2164,8 @@
 0d19:    99 75             MOV D, A
 0d1b:       ee             RET
 
-    ; FUNCTION sub_0d1c
-0d1c:    99 7f   sub_0d1c: MOV A, B
+    ; FUNCTION assert_eeprom_cs
+0d1c:    99 7f assert_eeprom_cs: MOV A, B
 0d1e:    93 f2             OUT PORT2, A
 0d20:       60             NOP
 0d21:       60             NOP
@@ -2179,8 +2179,8 @@
 0d2c:       60             NOP
 0d2d:       ee             RET
 
-    ; FUNCTION sub_0d2e
-0d2e:    9c 90   sub_0d2e: CLR1 [MBE]
+    ; FUNCTION adc_start_read
+0d2e:    9c 90 adc_start_read: CLR1 [MBE]
 0d30:       d9             XCH A, X
 0d31:    99 48             OR A, #8
 0d33:       d9             XCH A, X
@@ -2190,42 +2190,42 @@
 0d39:       fd             BR lbl_0d37
 0d3a:       ee             RET
 
-    ; FUNCTION sub_0d3b
-0d3b:    9c 90   sub_0d3b: CLR1 [MBE]
+    ; FUNCTION adc_finish_read
+0d3b:    9c 90 adc_finish_read: CLR1 [MBE]
 0d3d:    a7 d8   lbl_0d3d: SKT [EOC/?D8.2]
 0d3f:       fd             BR lbl_0d3d
 0d40:    a2 da             MOV XA, [SA/?DA]
 0d42:       ee             RET
 
-    ; FUNCTION sub_0d43 CALLS
-        ; sub_1080,
-        ; sub_0e21,
-        ; sub_0e62,
-        ; sub_06e9,
-        ; sub_0d95,
-        ; sub_06b7,
-        ; sub_0bd8,
+    ; FUNCTION really_get_var_30 CALLS
+        ; load_table_index,
+        ; process_magic_lower,
+        ; process_magic_upper,
+        ; get_var_30,
+        ; do_bank1_magic,
+        ; reset_basic_timer,
+        ; read_eeprom_to_bank_1,
         ; sub_04fc
-0d43: ab 46 e9   sub_0d43: CALL sub_06e9
+0d43: ab 46 e9 really_get_var_30: CALL get_var_30
 0d46:       ee             RET
 0d47:    9a 09             MOV X, #0
 0d49:    aa c8             ADDS XA, XA
 0d4b:    99 73             MOV H, A
 0d4d:    9a 0a             MOV L, #0
 0d4f:       4b             PUSH HL
-0d50: ab 4d 95             CALL sub_0d95
-0d53: ab 46 b7             CALL sub_06b7
-0d56: ab 50 80             CALL sub_1080
-0d59: ab 46 b7             CALL sub_06b7
-0d5c: ab 4e 21             CALL sub_0e21
-0d5f: ab 46 b7             CALL sub_06b7
-0d62: ab 4b d8             CALL sub_0bd8
-0d65: ab 46 b7             CALL sub_06b7
+0d50: ab 4d 95             CALL do_bank1_magic
+0d53: ab 46 b7             CALL reset_basic_timer
+0d56: ab 50 80             CALL load_table_index
+0d59: ab 46 b7             CALL reset_basic_timer
+0d5c: ab 4e 21             CALL process_magic_lower
+0d5f: ab 46 b7             CALL reset_basic_timer
+0d62: ab 4b d8             CALL read_eeprom_to_bank_1
+0d65: ab 46 b7             CALL reset_basic_timer
 0d68:       4a             POP HL
 0d69:       4b             PUSH HL
 0d6a: ab 44 fc             CALL sub_04fc
-0d6d: ab 4e 62             CALL sub_0e62
-0d70: ab 46 b7             CALL sub_06b7
+0d6d: ab 4e 62             CALL process_magic_upper
+0d70: ab 46 b7             CALL reset_basic_timer
 0d73:       4a             POP HL
 0d74:       c3             INCS H
 0d75: ab 44 fc             CALL sub_04fc
@@ -2245,10 +2245,10 @@
 0d92:    92 f2             OUT PORT2, XA
 0d94:       e0             RETS
 
-    ; FUNCTION sub_0d95 CALLS
-        ; sub_0ef8,
-        ; sub_0f48
-0d95:    9d 90   sub_0d95: SET1 [MBE]
+    ; FUNCTION do_bank1_magic CALLS
+        ; read_bank1,
+        ; add_16bit
+0d95:    9d 90 do_bank1_magic: SET1 [MBE]
 0d97:    99 10             SEL MB0
 0d99:    89 00             MOV XA, #0
 0d9b:    92 b0             MOV [PSW/?B0], XA
@@ -2269,56 +2269,56 @@
 0db9:       4f   lbl_0db9: PUSH BC
 0dba:    9a 0a             MOV L, #0
 0dbc:       4b             PUSH HL
-0dbd: ab 4e f8             CALL sub_0ef8
+0dbd: ab 4e f8             CALL read_bank1
 0dc0:    92 68             MOV [?68], XA
 0dc2:    8b b0             MOV HL, #B0
 0dc4:    8d 68             MOV DE, #68
-0dc6: ab 4f 48             CALL sub_0f48
+0dc6: ab 4f 48             CALL add_16bit
 0dc9:       4a             POP HL
 0dca:       c2             INCS L
 0dcb:       c2             INCS L
 0dcc:       4b             PUSH HL
-0dcd: ab 4e f8             CALL sub_0ef8
+0dcd: ab 4e f8             CALL read_bank1
 0dd0:    92 68             MOV [?68], XA
 0dd2:    8b b4             MOV HL, #B4
 0dd4:    8d 68             MOV DE, #68
-0dd6: ab 4f 48             CALL sub_0f48
+0dd6: ab 4f 48             CALL add_16bit
 0dd9:       4a             POP HL
 0dda:       c2             INCS L
 0ddb:       c2             INCS L
 0ddc:       4b             PUSH HL
-0ddd: ab 4e f8             CALL sub_0ef8
+0ddd: ab 4e f8             CALL read_bank1
 0de0:    92 68             MOV [?68], XA
 0de2:    8b b8             MOV HL, #B8
 0de4:    8d 68             MOV DE, #68
-0de6: ab 4f 48             CALL sub_0f48
+0de6: ab 4f 48             CALL add_16bit
 0de9:       4a             POP HL
 0dea:       c2             INCS L
 0deb:       c2             INCS L
 0dec:       4b             PUSH HL
-0ded: ab 4e f8             CALL sub_0ef8
+0ded: ab 4e f8             CALL read_bank1
 0df0:    92 68             MOV [?68], XA
 0df2:    8b bc             MOV HL, #BC
 0df4:    8d 68             MOV DE, #68
-0df6: ab 4f 48             CALL sub_0f48
+0df6: ab 4f 48             CALL add_16bit
 0df9:       4a             POP HL
 0dfa:       c2             INCS L
 0dfb:       c2             INCS L
 0dfc:       4b             PUSH HL
-0dfd: ab 4e f8             CALL sub_0ef8
+0dfd: ab 4e f8             CALL read_bank1
 0e00:    92 68             MOV [?68], XA
 0e02:    8b c0             MOV HL, #C0
 0e04:    8d 68             MOV DE, #68
-0e06: ab 4f 48             CALL sub_0f48
+0e06: ab 4f 48             CALL add_16bit
 0e09:       4a             POP HL
 0e0a:       c2             INCS L
 0e0b:       c2             INCS L
 0e0c:       4b             PUSH HL
-0e0d: ab 4e f8             CALL sub_0ef8
+0e0d: ab 4e f8             CALL read_bank1
 0e10:    92 68             MOV [?68], XA
 0e12:    8b c4             MOV HL, #C4
 0e14:    8d 68             MOV DE, #68
-0e16: ab 4f 48             CALL sub_0f48
+0e16: ab 4f 48             CALL add_16bit
 0e19:       4a             POP HL
 0e1a:       4e             POP BC
 0e1b:       c3             INCS H
@@ -2327,83 +2327,83 @@
 0e1e:    5d b9             BRCB lbl_0db9
 0e20:       ee             RET
 
-    ; FUNCTION sub_0e21 CALLS
-        ; sub_0ed1,
-        ; sub_0eaa,
-        ; sub_1094
-0e21:    9d 90   sub_0e21: SET1 [MBE]
+    ; FUNCTION process_magic_lower CALLS
+        ; magic_table_subtract,
+        ; magic_table_add,
+        ; load_table
+0e21:    9d 90 process_magic_lower: SET1 [MBE]
 0e23:    99 10             SEL MB0
-0e25: ab 50 94             CALL sub_1094
+0e25: ab 50 94             CALL load_table
 0e28:    92 50             MOV [?50], XA
-0e2a: ab 50 94             CALL sub_1094
+0e2a: ab 50 94             CALL load_table
 0e2d:    92 52             MOV [?52], XA
-0e2f: ab 50 94             CALL sub_1094
+0e2f: ab 50 94             CALL load_table
 0e32:    92 54             MOV [?54], XA
 0e34:    8b b0             MOV HL, #B0
 0e36:    8d 68             MOV DE, #68
-0e38: ab 4e aa             CALL sub_0eaa
+0e38: ab 4e aa             CALL magic_table_add
 0e3b:    92 56             MOV [?56], XA
 0e3d:    8b b0             MOV HL, #B0
 0e3f:    8d 68             MOV DE, #68
-0e41: ab 4e d1             CALL sub_0ed1
+0e41: ab 4e d1             CALL magic_table_subtract
 0e44:    92 58             MOV [?58], XA
 0e46:    8b b4             MOV HL, #B4
 0e48:    8d 68             MOV DE, #68
-0e4a: ab 4e aa             CALL sub_0eaa
+0e4a: ab 4e aa             CALL magic_table_add
 0e4d:    92 5a             MOV [?5A], XA
 0e4f:    8b b4             MOV HL, #B4
 0e51:    8d 68             MOV DE, #68
-0e53: ab 4e d1             CALL sub_0ed1
+0e53: ab 4e d1             CALL magic_table_subtract
 0e56:    92 5c             MOV [?5C], XA
 0e58:    8b b8             MOV HL, #B8
 0e5a:    8d 68             MOV DE, #68
-0e5c: ab 4e aa             CALL sub_0eaa
+0e5c: ab 4e aa             CALL magic_table_add
 0e5f:    92 5e             MOV [?5E], XA
 0e61:       ee             RET
 
-    ; FUNCTION sub_0e62 CALLS
-        ; sub_0ed1,
-        ; sub_0eaa
-0e62:    9d 90   sub_0e62: SET1 [MBE]
+    ; FUNCTION process_magic_upper CALLS
+        ; magic_table_subtract,
+        ; magic_table_add
+0e62:    9d 90 process_magic_upper: SET1 [MBE]
 0e64:    99 10             SEL MB0
 0e66:    8b b8             MOV HL, #B8
 0e68:    8d 68             MOV DE, #68
-0e6a: ab 4e d1             CALL sub_0ed1
+0e6a: ab 4e d1             CALL magic_table_subtract
 0e6d:    92 50             MOV [?50], XA
 0e6f:    8b bc             MOV HL, #BC
 0e71:    8d 68             MOV DE, #68
-0e73: ab 4e aa             CALL sub_0eaa
+0e73: ab 4e aa             CALL magic_table_add
 0e76:    92 52             MOV [?52], XA
 0e78:    8b bc             MOV HL, #BC
 0e7a:    8d 68             MOV DE, #68
-0e7c: ab 4e d1             CALL sub_0ed1
+0e7c: ab 4e d1             CALL magic_table_subtract
 0e7f:    92 54             MOV [?54], XA
 0e81:    8b c0             MOV HL, #C0
 0e83:    8d 68             MOV DE, #68
-0e85: ab 4e aa             CALL sub_0eaa
+0e85: ab 4e aa             CALL magic_table_add
 0e88:    92 56             MOV [?56], XA
 0e8a:    8b c0             MOV HL, #C0
 0e8c:    8d 68             MOV DE, #68
-0e8e: ab 4e d1             CALL sub_0ed1
+0e8e: ab 4e d1             CALL magic_table_subtract
 0e91:    92 58             MOV [?58], XA
 0e93:    8b c4             MOV HL, #C4
 0e95:    8d 68             MOV DE, #68
-0e97: ab 4e aa             CALL sub_0eaa
+0e97: ab 4e aa             CALL magic_table_add
 0e9a:    92 5a             MOV [?5A], XA
 0e9c:    8b c4             MOV HL, #C4
 0e9e:    8d 68             MOV DE, #68
-0ea0: ab 4e d1             CALL sub_0ed1
+0ea0: ab 4e d1             CALL magic_table_subtract
 0ea3:    92 5c             MOV [?5C], XA
 0ea5:    89 ff             MOV XA, #FF
 0ea7:    92 5e             MOV [?5E], XA
 0ea9:       ee             RET
 
-    ; FUNCTION sub_0eaa CALLS
-        ; sub_0f48,
-        ; sub_1094,
-        ; sub_0f06
-0eaa: ab 4f 06   sub_0eaa: CALL sub_0f06
-0ead: ab 50 94             CALL sub_1094
+    ; FUNCTION magic_table_add CALLS
+        ; add_16bit,
+        ; load_table,
+        ; copy_16bit
+0eaa: ab 4f 06 magic_table_add: CALL copy_16bit
+0ead: ab 50 94             CALL load_table
 0eb0:    93 65             MOV [?65], A
 0eb2:    99 79             MOV A, X
 0eb4:    93 66             MOV [?66], A
@@ -2412,7 +2412,7 @@
 0eb9:    93 67             MOV [?67], A
 0ebb:    8b 68             MOV HL, #68
 0ebd:    8d 64             MOV DE, #64
-0ebf: ab 4f 48             CALL sub_0f48
+0ebf: ab 4f 48             CALL add_16bit
 0ec2:    a3 6b             MOV A, [?6B]
 0ec4:    9a 00             SKE A, #0
 0ec6:       07             BR lbl_0ece
@@ -2423,12 +2423,12 @@
 0ece:    89 ff   lbl_0ece: MOV XA, #FF
 0ed0:       ee             RET
 
-    ; FUNCTION sub_0ed1 CALLS
-        ; sub_1094,
-        ; sub_0f06,
-        ; sub_0f57
-0ed1: ab 4f 06   sub_0ed1: CALL sub_0f06
-0ed4: ab 50 94             CALL sub_1094
+    ; FUNCTION magic_table_subtract CALLS
+        ; load_table,
+        ; copy_16bit,
+        ; subtract_16bit
+0ed1: ab 4f 06 magic_table_subtract: CALL copy_16bit
+0ed4: ab 50 94             CALL load_table
 0ed7:    93 65             MOV [?65], A
 0ed9:    99 79             MOV A, X
 0edb:    93 66             MOV [?66], A
@@ -2437,7 +2437,7 @@
 0ee0:    93 67             MOV [?67], A
 0ee2:    8b 68             MOV HL, #68
 0ee4:    8d 64             MOV DE, #64
-0ee6: ab 4f 57             CALL sub_0f57
+0ee6: ab 4f 57             CALL subtract_16bit
 0ee9:    a3 6b             MOV A, [?6B]
 0eeb:    9a f0             SKE A, #F
 0eed:       03             BR lbl_0ef1
@@ -2448,20 +2448,20 @@
 0ef5:    a3 69             MOV A, [?69]
 0ef7:       ee             RET
 
-    ; FUNCTION sub_0ef8
-0ef8:    99 11   sub_0ef8: SEL MB1
+    ; FUNCTION read_bank1
+0ef8:    99 11 read_bank1: SEL MB1
 0efa:    aa 18             MOV XA, @HL
 0efc:    99 10             SEL MB0
 0efe:       ee             RET
 
-    ; FUNCTION sub_0eff
-0eff:    99 11   sub_0eff: SEL MB1
+    ; FUNCTION write_bank1
+0eff:    99 11 write_bank1: SEL MB1
 0f01:    aa 10             MOV @HL, XA
 0f03:    99 10             SEL MB0
 0f05:       ee             RET
 
-    ; FUNCTION sub_0f06
-0f06:    9a 3f   sub_0f06: MOV B, #3
+    ; FUNCTION copy_16bit
+0f06:    9a 3f copy_16bit: MOV B, #3
 0f08:       e1   lbl_0f08: MOV A, @HL
 0f09:       ec             XCH A, @DE
 0f0a:       c2             INCS L
@@ -2527,8 +2527,8 @@
 0f46:       60             NOP
 0f47:       f9             BR lbl_0f41
 
-    ; FUNCTION sub_0f48
-0f48:       4f   sub_0f48: PUSH BC
+    ; FUNCTION add_16bit
+0f48:       4f  add_16bit: PUSH BC
 0f49:       e6             CLR1 CY
 0f4a:    9a 3f             MOV B, #3
 0f4c:       e4   lbl_0f4c: MOV A, @DE
@@ -2543,8 +2543,8 @@
 0f55:       4e             POP BC
 0f56:       ee             RET
 
-    ; FUNCTION sub_0f57
-0f57:       4f   sub_0f57: PUSH BC
+    ; FUNCTION subtract_16bit
+0f57:       4f subtract_16bit: PUSH BC
 0f58:       e6             CLR1 CY
 0f59:    9a 3f             MOV B, #3
 0f5b:    aa 5c             MOV XA, DE
@@ -2562,8 +2562,8 @@
 0f6a:       4e             POP BC
 0f6b:       ee             RET
 
-    ; FUNCTION sub_0f6c
-0f6c:       c0   sub_0f6c: INCS A
+    ; FUNCTION increment_xa
+0f6c:       c0 increment_xa: INCS A
 0f6d:       ee             RET
 0f6e:       c1             INCS X
 0f6f:       60             NOP
@@ -2714,7 +2714,7 @@
 
     ; SECTION .data
 
-1000:       01             .byte #1
+1000:       01 data_table_1000: .byte #1
 1001:       00             .byte #0
 1002:       01             .byte #1
 1003:       08             .byte #8
@@ -2834,7 +2834,7 @@
 1075:       00             .byte #0
 1076:       00             .byte #0
 1077:       00             .byte #0
-1078:       00             .byte #0
+1078:       00 data_indices_1078: .byte #0
 1079:       0f             .byte #F
 107a:       1e             .byte #1E
 107b:       2d             .byte #2D
@@ -2846,9 +2846,9 @@
     ; SECTION .text2
 
 
-    ; FUNCTION sub_1080 CALLS
-        ; sub_06e9
-1080: ab 46 e9   sub_1080: CALL sub_06e9
+    ; FUNCTION load_table_index CALLS
+        ; get_var_30
+1080: ab 46 e9 load_table_index: CALL get_var_30
 1083:       60             NOP
 1084:    9a 09             MOV X, #0
 1086:    8d 78             MOV DE, #78
@@ -2861,17 +2861,17 @@
 1091:    92 60             MOV [?60], XA
 1093:       ee             RET
 
-    ; FUNCTION sub_1094 CALLS
-        ; sub_0f6c
-1094:    a2 60   sub_1094: MOV XA, [?60]
+    ; FUNCTION load_table CALLS
+        ; increment_xa
+1094:    a2 60 load_table: MOV XA, [?60]
 1096:       d0             MOVT XA, @PCXA
 1097:    b2 60             XCH XA, [?60]
-1099: ab 4f 6c             CALL sub_0f6c
+1099: ab 4f 6c             CALL increment_xa
 109c:    b2 60             XCH XA, [?60]
 109e:       ee             RET
 
-    ; FUNCTION sub_109f
-109f:    9a 09   sub_109f: MOV X, #0
+    ; FUNCTION load_from_table_10a8
+109f:    9a 09 load_from_table_10a8: MOV X, #0
 10a1:    8d a8             MOV DE, #A8
 10a3:       e6             CLR1 CY
 10a4:    aa dc             ADDC XA, DE
@@ -2880,7 +2880,7 @@
 
     ; SECTION .data2
 
-10a8:       3f             .byte #3F
+10a8:       3f data_table_10a8: .byte #3F
 10a9:       06             .byte #6
 10aa:       5b             .byte #5B
 10ab:       4f             .byte #4F
