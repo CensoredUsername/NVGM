@@ -104,7 +104,7 @@ class Analysis:
                 for arg in instruction.arguments:
                     if isinstance(arg, ast.BitAddr):
                         address = arg.address
-                        if address <= 0xFF:
+                        if address <= 0xFF and address >= 0x80:
                             address += 0xF00
 
                         if (address, arg.bit) in data_names:
@@ -114,7 +114,7 @@ class Analysis:
 
                     elif isinstance(arg, ast.Address):
                         address = arg.address
-                        if address <= 0xFF:
+                        if address <= 0xFF and address >= 0x80:
                             address += 0xF00
 
                         if address in data_names:
@@ -250,11 +250,34 @@ def get_known_codelocs():
     locs[0xd1c] = "assert_eeprom_cs"
     locs[0x50f] = "check_environment"
     locs[0x563] = "initialize_eeprom"
+
+
+    locs[0x632] = "update_gpio"
+    locs[0x653] = "read_encoder_setting"
+    locs[0x661] = "update_relay"
     locs[0x67e] = "initialize_gpio_and_interrupts"
     locs[0x69c] = "reconfigure_timers"
-    locs[0x6b1] = "set_0e_to_5"
+    locs[0x6b1] = "reset_watchdog_next_INTT0"
     locs[0x6b7] = "reset_basic_timer"
-    locs[0x6e9] = "get_var_30"
+    locs[0x6e9] = "get_encoder_readout"
+    locs[0x6ec] = "update_IO_OUT"
+
+    locs[0x741] = "toggle_display_if_external_error"
+    locs[0x774] = "update_display"
+    locs[0x7f1] = "bitbang_serial_8bits"
+    locs[0x7f6] = "bitbang_serial_4bits"
+
+    locs[0x817] = "update_io"
+
+    locs[0xa5f] = "increment_osc_count_and_on_rollover"
+
+    locs[0xb42] = "both_oscs_above_threshold"
+    locs[0xb4b] = "bottom_osc_above_threshold"
+    locs[0xb52] = "top_osc_above_threshold"
+
+    locs[0xb77] = "update_solenoid_state"
+
+
     locs[0xb96] = "sync_eeprom_to_bank_1"
     locs[0xbd8] = "read_eeprom_to_bank_1"
     locs[0xc06] = "validate_eeprom_bank_1"
@@ -270,7 +293,7 @@ def get_known_codelocs():
     locs[0xd2e] = "adc_start_read"
     locs[0xd3b] = "adc_finish_read"
 
-    locs[0xd43] = "really_get_var_30"
+    locs[0xd43] = "really_get_encoder_readout"
     locs[0xd95] = "do_bank1_magic"
     locs[0xe21] = "process_magic_lower"
     locs[0xe62] = "process_magic_upper"
@@ -287,8 +310,8 @@ def get_known_codelocs():
     locs[0x1078] = "data_indices_1078"
     locs[0x1080] = "load_table_index"
     locs[0x1094] = "load_table"
-    locs[0x109f] = "load_from_table_10a8"
-    locs[0x10a8] = "data_table_10a8"
+    locs[0x109f] = "get_7seg_encoding"
+    locs[0x10a8] = "seg7_encoding_table"
 
 
     return locs
@@ -297,14 +320,52 @@ def get_known_datalocs():
     locs = {}
     # int -> name for nibble/byte accesses, (int, int) -> name for bit accesses
 
-    # locs[0x000]= "A0"
-    # locs[0x001]= "X0"
-    # locs[0x002]= "L0"
-    # locs[0x003]= "H0"
-    # locs[0x004]= "E0"
-    # locs[0x005]= "D0"
-    # locs[0x006]= "C0"
-    # locs[0x007]= "B0"
+    locs[0x000]= "A"
+    locs[0x001]= "X"
+    locs[0x002]= "L"
+    locs[0x003]= "H"
+    locs[0x004]= "E"
+    locs[0x005]= "D"
+    locs[0x006]= "C"
+    locs[0x007]= "B"
+
+    locs[0x00a]= "top_osc_readout"
+    locs[0x00c]= "bottom_osc_readout"
+    locs[0x00e]= "reset_watchdog_next_INTT0_flag"
+
+    locs[0x22]= "last_bottom_osc_2"
+
+    locs[0x02a]= "previous_top_osc_readout"
+
+    locs[0x02e]= "port2_gpio_output"
+    locs[0x02f]= "port3_gpio_output"
+    locs[0x02c]= "port0_readout"
+    locs[0x02d]= "port1_readout"
+    locs[0x030]= "encoder1_readout"
+    locs[0x031]= "encoder2_readout"
+    locs[0x032]= "port6_readout"
+    locs[0x036]= "relay_uptime_remaining"
+
+    locs[0x03a]= "solenoid_uptime_remaining"
+
+    locs[0x04d]= "osc_count[0]"
+    locs[0x04e]= "osc_count[1]"
+    locs[0x04f]= "osc_count[2]"
+
+    locs[0x64]= "buf0_16bit[0]"
+    locs[0x65]= "buf0_16bit[1]"
+    locs[0x66]= "buf0_16bit[2]"
+    locs[0x67]= "buf0_16bit[3]"
+    locs[0x68]= "buf1_16bit[0]"
+    locs[0x69]= "buf1_16bit[1]"
+    locs[0x6a]= "buf1_16bit[2]"
+    locs[0x6b]= "buf1_16bit[3]"
+
+
+    locs[0x6c]= "top_osc_threshold"
+    locs[0x6e]= "bottom_osc_threshold"
+
+    locs[0x72]= "last_bottom_osc_1"
 
     # locs[0x008]= "A1"
     # locs[0x009]= "X1"
@@ -338,8 +399,12 @@ def get_known_datalocs():
     locs[0xF82]= "RBS"
     locs[0xF83]= "MBS"
     locs[0xF84]= "SBS"
-    locs[0xF85]= "BTM"
-    locs[0xF86]= "BT"
+    locs[0xF85]= "BTM/suppress_display_flag"
+    locs[0xF86]= "BT/display_error_timeout[0]"
+    locs[0xF87]= "display_error_timeout[1]"
+    locs[0xF88]= "IO_OUT_pulses_remaining"
+    locs[0xF8A]= "IO_OUT_pulse_time_remaining"
+    locs[0xF8C]= "IO_OUT_pulse_state"
 
     locs[0xF8B]= "WDTM"
 
@@ -443,9 +508,9 @@ def get_known_datalocs():
     locs[0xFF5]= "PORT5"
     locs[0xFF6]= "PORT6"
     locs[0xFF6, 0]= "KR0"
-    locs[0xFF6, 1]= "KR1"
-    locs[0xFF6, 2]= "KR2"
-    locs[0xFF6, 3]= "KR3"
+    locs[0xFF6, 1]= "KR1/SDI"
+    locs[0xFF6, 2]= "KR2/CLK"
+    locs[0xFF6, 3]= "KR3/STROBE"
     locs[0xFFB]= "PORT11"
 
     return locs
