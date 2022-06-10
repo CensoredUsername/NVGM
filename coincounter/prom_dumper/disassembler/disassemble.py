@@ -271,9 +271,9 @@ def get_known_codelocs():
 
     locs[0xa5f] = "increment_osc_count_and_on_rollover"
 
-    locs[0xb42] = "both_oscs_above_threshold"
-    locs[0xb4b] = "bottom_osc_above_threshold"
-    locs[0xb52] = "top_osc_above_threshold"
+    locs[0xb42] = "both_oscs_above_max"
+    locs[0xb4b] = "bottom_osc_above_max"
+    locs[0xb52] = "top_osc_above_max"
 
     locs[0xb77] = "update_solenoid_state"
 
@@ -329,6 +329,11 @@ def get_known_datalocs():
     locs[0x006]= "C"
     locs[0x007]= "B"
 
+    # locs[0x008]= 
+    locs[0x009]= "detector_flags"
+    locs[0x009, 1] = "detector_ready"
+    locs[0x009, 2] = "detector_triggered"
+
     locs[0x00a]= "top_osc_readout"
     locs[0x00c]= "bottom_osc_readout"
     locs[0x00e]= "reset_watchdog_next_INTT0_flag"
@@ -348,6 +353,8 @@ def get_known_datalocs():
 
     locs[0x03a]= "solenoid_uptime_remaining"
 
+    locs[0x040]= "current_digit"
+
     locs[0x04d]= "osc_count[0]"
     locs[0x04e]= "osc_count[1]"
     locs[0x04f]= "osc_count[2]"
@@ -362,8 +369,8 @@ def get_known_datalocs():
     locs[0x6b]= "buf1_16bit[3]"
 
 
-    locs[0x6c]= "top_osc_threshold"
-    locs[0x6e]= "bottom_osc_threshold"
+    locs[0x6c]= "top_osc_max"
+    locs[0x6e]= "bottom_osc_max"
 
     locs[0x72]= "last_bottom_osc_1"
 

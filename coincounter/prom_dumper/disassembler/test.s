@@ -147,7 +147,7 @@
 00ce:       02             BR lbl_00d1
 00cf:    51 de             BRCB lbl_01de
 00d1:       70   lbl_00d1: MOV A, #0
-00d2:    93 09             MOV [?09], A
+00d2:    93 09             MOV [detector_flags/?09], A
 00d4:       74             MOV A, #4
 00d5:    93 08             MOV [?08], A
 00d7: ab 46 b1   lbl_00d7: CALL reset_watchdog_next_INTT0
@@ -242,7 +242,7 @@
 018d:    a6 4a             SKF [?4A.2]
 018f:       f7             BR lbl_0187
 0190:       70   lbl_0190: MOV A, #0
-0191:    93 09             MOV [?09], A
+0191:    93 09             MOV [detector_flags/?09], A
 0193:       70             MOV A, #0
 0194:    93 08             MOV [?08], A
 0196:    50 bd             BRCB lbl_00bd
@@ -403,9 +403,9 @@
 02ac: ab 45 80             CALL sub_0580
 02af: ab 45 b1             CALL sub_05b1
 02b2: ab 46 b7             CALL reset_basic_timer
-02b5:    a2 6c             MOV XA, [top_osc_threshold/?6C]
+02b5:    a2 6c             MOV XA, [top_osc_max/?6C]
 02b7: ab 45 80             CALL sub_0580
-02ba:    a2 6e             MOV XA, [bottom_osc_threshold/?6E]
+02ba:    a2 6e             MOV XA, [bottom_osc_max/?6E]
 02bc: ab 45 80             CALL sub_0580
 02bf: ab 45 ab             CALL sub_05ab
 02c2: ab 46 b7             CALL reset_basic_timer
@@ -582,7 +582,7 @@
     ; FUNCTION sub_03f9 CALLS
         ; reset_watchdog_next_INTT0
 03f9:       70   sub_03f9: MOV A, #0
-03fa:    93 09             MOV [?09], A
+03fa:    93 09             MOV [detector_flags/?09], A
 03fc:       74             MOV A, #4
 03fd:    93 08             MOV [?08], A
 03ff: ab 46 b1   lbl_03ff: CALL reset_watchdog_next_INTT0
@@ -1217,7 +1217,7 @@
 0785:    a3 f3             IN A, PORT3
 0787:    99 31             AND A, #1
 0789:    93 f3             OUT PORT3, A
-078b:    a3 40             MOV A, [?40]
+078b:    a3 40             MOV A, [current_digit/?40]
 078d:    9a 00             SKE A, #0
 078f:       02             BR lbl_0792
 0790:    93 41             MOV [?41], A
@@ -1226,7 +1226,7 @@
 0795:    9a 30             SKE A, #3
 0797:       01             BR lbl_0799
 0798:       70             MOV A, #0
-0799:    93 40   lbl_0799: MOV [?40], A
+0799:    93 40   lbl_0799: MOV [current_digit/?40], A
 079b:       ce             DECS C
 079c:    57 b2             BRCB lbl_07b2
 079e:    a3 65             MOV A, [buf0_16bit[1]/?65]
@@ -1333,7 +1333,7 @@
 082e:       ee             RET
 
     ; FUNCTION sub_082f CALLS
-        ; both_oscs_above_threshold,
+        ; both_oscs_above_max,
         ; sub_0a08,
         ; sub_0a4f,
         ; sub_0a79,
@@ -1350,7 +1350,7 @@
 083e:       ee             RET
 083f:    84 08             CLR1 [?08.0]
 0841:       70             MOV A, #0
-0842:    93 09             MOV [?09], A
+0842:    93 09             MOV [detector_flags/?09], A
 0844:       78             MOV A, #8
 0845:    93 4d             MOV [osc_count[0]/?4D], A
 0847:       74             MOV A, #4
@@ -1359,24 +1359,24 @@
 084c:       ee             RET
 084d: ab 4a 5f   lbl_084d: CALL increment_osc_count_and_on_rollover
 0850:       04             BR lbl_0855
-0851: ab 4b 42             CALL both_oscs_above_threshold
+0851: ab 4b 42             CALL both_oscs_above_max
 0854:       ee             RET
 0855:       73   lbl_0855: MOV A, #3
 0856:    93 08             MOV [?08], A
 0858:       70             MOV A, #0
-0859:    93 09             MOV [?09], A
+0859:    93 09             MOV [detector_flags/?09], A
 085b:    84 4b             CLR1 [?4B.0]
 085d:    be c0             SKF [PORT0.0]
 085f:       ee             RET
 0860:       70             MOV A, #0
 0861:    93 08             MOV [?08], A
 0863:       ee             RET
-0864:    86 09   lbl_0864: SKF [?09.0]
+0864:    86 09   lbl_0864: SKF [detector_flags.0/?09.0]
 0866:    58 a2             BRCB lbl_08a2
 0868: ab 4a 79             CALL sub_0a79
 086b:       ee             RET
 086c:       71             MOV A, #1
-086d:    93 09             MOV [?09], A
+086d:    93 09             MOV [detector_flags/?09], A
 086f:    85 4b             SET1 [?4B.0]
 0871:    a2 0a             MOV XA, [top_osc_readout/?0A]
 0873:    92 10             MOV [?10], XA
@@ -1388,9 +1388,9 @@
 087f:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0881:    92 70             MOV [?70], XA
 0883:    92 72             MOV [last_bottom_osc_1/?72], XA
-0885:    a2 6c             MOV XA, [top_osc_threshold/?6C]
+0885:    a2 6c             MOV XA, [top_osc_max/?6C]
 0887:    92 12             MOV [?12], XA
-0889:    a2 6e             MOV XA, [bottom_osc_threshold/?6E]
+0889:    a2 6e             MOV XA, [bottom_osc_max/?6E]
 088b:    92 14             MOV [?14], XA
 088d:    89 00             MOV XA, #0
 088f:    92 1c             MOV [?1C], XA
@@ -1405,11 +1405,11 @@
 089f:    93 4f             MOV [osc_count[2]/?4F], A
 08a1:       ee             RET
 08a2: ab 4a 5f   lbl_08a2: CALL increment_osc_count_and_on_rollover
-08a5:    b7 09             SKT [?09.3]
+08a5:    b7 09             SKT [detector_flags.3/?09.3]
 08a7:       04             BR lbl_08ac
-08a8: ab 4b 42             CALL both_oscs_above_threshold
+08a8: ab 4b 42             CALL both_oscs_above_max
 08ab:       ee             RET
-08ac: ab 4b 42   lbl_08ac: CALL both_oscs_above_threshold
+08ac: ab 4b 42   lbl_08ac: CALL both_oscs_above_max
 08af:    58 d1             BRCB lbl_08d1
 08b1:    a2 12             MOV XA, [?12]
 08b3:    aa 54             MOV DE, XA
@@ -1472,13 +1472,13 @@
 0917:       08             BR lbl_0920
 0918:    a2 0a             MOV XA, [top_osc_readout/?0A]
 091a:    92 20             MOV [?20], XA
-091c:    94 09             CLR1 [?09.1]
+091c:    94 09             CLR1 [detector_ready/?09.1]
 091e:    59 38             BRCB lbl_0938
-0920:    96 09   lbl_0920: SKF [?09.1]
+0920:    96 09   lbl_0920: SKF [detector_ready/?09.1]
 0922:    59 38             BRCB lbl_0938
 0924:       68             ADDS A, #8
 0925:    59 38             BRCB lbl_0938
-0927:    95 09             SET1 [?09.1]
+0927:    95 09             SET1 [detector_ready/?09.1]
 0929:    a2 20             MOV XA, [?20]
 092b:    92 24             MOV [?24], XA
 092d:    82 48             INCS [?48]
@@ -1486,7 +1486,7 @@
 0930:    a3 48             MOV A, [?48]
 0932:    9a 30             SKE A, #3
 0934:       03             BR lbl_0938
-0935:    b5 09             SET1 [?09.3]
+0935:    b5 09             SET1 [detector_flags.3/?09.3]
 0937:       ee             RET
 0938:    a2 0c   lbl_0938: MOV XA, [bottom_osc_readout/?0C]
 093a:    aa 54             MOV DE, XA
@@ -1536,7 +1536,7 @@
 0983:       d7             SKT CY
 0984:       ee             RET
 0985:    84 46             CLR1 [?46.0]
-0987:    b5 09             SET1 [?09.3]
+0987:    b5 09             SET1 [detector_flags.3/?09.3]
 0989:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 098b:    92 70             MOV [?70], XA
 098d:       ee             RET
@@ -1568,7 +1568,7 @@
 09b3:       ee             RET
 09b4:    a5 46             SET1 [?46.2]
 09b6:    95 46             SET1 [?46.1]
-09b8:    a2 6c             MOV XA, [top_osc_threshold/?6C]
+09b8:    a2 6c             MOV XA, [top_osc_max/?6C]
 09ba:    92 12             MOV [?12], XA
 09bc:    a2 0c   lbl_09bc: MOV XA, [bottom_osc_readout/?0C]
 09be:    92 22             MOV [last_bottom_osc_2/?22], XA
@@ -1695,22 +1695,22 @@
 0a6e:       74             MOV A, #4
 0a6f:    93 08             MOV [?08], A
 0a71:       70             MOV A, #0
-0a72:    93 09             MOV [?09], A
+0a72:    93 09             MOV [detector_flags/?09], A
 0a74:    93 46             MOV [?46], A
 0a76:    84 4b             CLR1 [?4B.0]
 0a78:       ee             RET
 
     ; FUNCTION sub_0a79 CALLS
         ; sub_0b10,
-        ; top_osc_above_threshold
-0a79:    96 09   sub_0a79: SKF [?09.1]
+        ; top_osc_above_max
+0a79:    96 09   sub_0a79: SKF [detector_ready/?09.1]
 0a7b:    5a 94             BRCB lbl_0a94
 0a7d:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-0a7f:    92 6e             MOV [bottom_osc_threshold/?6E], XA
+0a7f:    92 6e             MOV [bottom_osc_max/?6E], XA
 0a81:    a2 0a             MOV XA, [top_osc_readout/?0A]
-0a83:    92 6c             MOV [top_osc_threshold/?6C], XA
-0a85:    95 09             SET1 [?09.1]
-0a87:    a4 09             CLR1 [?09.2]
+0a83:    92 6c             MOV [top_osc_max/?6C], XA
+0a85:    95 09             SET1 [detector_ready/?09.1]
+0a87:    a4 09             CLR1 [detector_triggered/?09.2]
 0a89:    b4 08             CLR1 [?08.3]
 0a8b:       70             MOV A, #0
 0a8c:    93 4d             MOV [osc_count[0]/?4D], A
@@ -1718,25 +1718,25 @@
 0a90:       7e             MOV A, #E
 0a91:    93 4f             MOV [osc_count[2]/?4F], A
 0a93:       ee             RET
-0a94:    a6 09   lbl_0a94: SKF [?09.2]
+0a94:    a6 09   lbl_0a94: SKF [detector_triggered/?09.2]
 0a96:    5a d6             BRCB lbl_0ad6
 0a98:    a2 0a             MOV XA, [top_osc_readout/?0A]
 0a9a:    aa 54             MOV DE, XA
-0a9c:    a2 6c             MOV XA, [top_osc_threshold/?6C]
+0a9c:    a2 6c             MOV XA, [top_osc_max/?6C]
 0a9e:       e6             CLR1 CY
 0a9f:    aa fc             SUBC XA, DE
 0aa1:       d7             SKT CY
 0aa2:       09             BR lbl_0aac
 0aa3:    a2 0a             MOV XA, [top_osc_readout/?0A]
-0aa5:    92 6c             MOV [top_osc_threshold/?6C], XA
+0aa5:    92 6c             MOV [top_osc_max/?6C], XA
 0aa7:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-0aa9:    92 6e             MOV [bottom_osc_threshold/?6E], XA
+0aa9:    92 6e             MOV [bottom_osc_max/?6E], XA
 0aab:       ee             RET
 0aac:    9a 01   lbl_0aac: SKE X, #0
 0aae:       03             BR lbl_0ab2
 0aaf:       64             ADDS A, #4
 0ab0:    5a c4             BRCB lbl_0ac4
-0ab2:    a5 09   lbl_0ab2: SET1 [?09.2]
+0ab2:    a5 09   lbl_0ab2: SET1 [detector_triggered/?09.2]
 0ab4:    b5 08             SET1 [?08.3]
 0ab6:    a2 0a             MOV XA, [top_osc_readout/?0A]
 0ab8:    92 2a             MOV [previous_top_osc_readout/?2A], XA
@@ -1755,11 +1755,11 @@
 0ace:    8b 4f             MOV HL, #4F
 0ad0:    99 02             INCS @HL
 0ad2:       ee             RET
-0ad3:    94 09             CLR1 [?09.1]
+0ad3:    94 09             CLR1 [detector_ready/?09.1]
 0ad5:       ee             RET
-0ad6: ab 4b 52   lbl_0ad6: CALL top_osc_above_threshold
+0ad6: ab 4b 52   lbl_0ad6: CALL top_osc_above_max
 0ad9:       03             BR lbl_0add
-0ada:    94 09             CLR1 [?09.1]
+0ada:    94 09             CLR1 [detector_ready/?09.1]
 0adc:       ee             RET
 0add:    8b 4d   lbl_0add: MOV HL, #4D
 0adf:    99 02             INCS @HL
@@ -1773,7 +1773,7 @@
 0aec: ab 4b 10   lbl_0aec: CALL sub_0b10
 0aef:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0af1:    aa 54             MOV DE, XA
-0af3:    a2 6e             MOV XA, [bottom_osc_threshold/?6E]
+0af3:    a2 6e             MOV XA, [bottom_osc_max/?6E]
 0af5:       e6             CLR1 CY
 0af6:    aa fc             SUBC XA, DE
 0af8:       d7             SKT CY
@@ -1791,7 +1791,7 @@
 0b09:    aa fc             SUBC XA, DE
 0b0b:       d7             SKT CY
 0b0c:       e0             RETS
-0b0d:    94 09             CLR1 [?09.1]
+0b0d:    94 09             CLR1 [detector_ready/?09.1]
 0b0f:       ee             RET
 
     ; FUNCTION sub_0b10
@@ -1828,25 +1828,25 @@
 0b3f:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 0b41:       ee             RET
 
-    ; FUNCTION both_oscs_above_threshold CALLS
-        ; top_osc_above_threshold,
-        ; bottom_osc_above_threshold
-0b42: ab 4b 4b both_oscs_above_threshold: CALL bottom_osc_above_threshold
+    ; FUNCTION both_oscs_above_max CALLS
+        ; top_osc_above_max,
+        ; bottom_osc_above_max
+0b42: ab 4b 4b both_oscs_above_max: CALL bottom_osc_above_max
 0b45:       ee             RET
-0b46: ab 4b 52             CALL top_osc_above_threshold
+0b46: ab 4b 52             CALL top_osc_above_max
 0b49:       ee             RET
 0b4a:       e0             RETS
 
-    ; FUNCTION bottom_osc_above_threshold
-0b4b:    a2 0c bottom_osc_above_threshold: MOV XA, [bottom_osc_readout/?0C]
+    ; FUNCTION bottom_osc_above_max
+0b4b:    a2 0c bottom_osc_above_max: MOV XA, [bottom_osc_readout/?0C]
 0b4d:    aa 54             MOV DE, XA
-0b4f:    a2 6e             MOV XA, [bottom_osc_threshold/?6E]
+0b4f:    a2 6e             MOV XA, [bottom_osc_max/?6E]
 0b51:       06             BR lbl_0b58
 
-    ; FUNCTION top_osc_above_threshold
-0b52:    a2 0a top_osc_above_threshold: MOV XA, [top_osc_readout/?0A]
+    ; FUNCTION top_osc_above_max
+0b52:    a2 0a top_osc_above_max: MOV XA, [top_osc_readout/?0A]
 0b54:    aa 54             MOV DE, XA
-0b56:    a2 6c             MOV XA, [top_osc_threshold/?6C]
+0b56:    a2 6c             MOV XA, [top_osc_max/?6C]
 0b58:       e6   lbl_0b58: CLR1 CY
 0b59:    aa fc             SUBC XA, DE
 0b5b:       d6             NOT1 CY
@@ -2236,11 +2236,11 @@
 0d80:    a2 f2             IN XA, PORT2
 0d82:    92 f6             OUT PORT6, XA
 0d84:    99 10             SEL MB0
-0d86:    a2 6c             MOV XA, [top_osc_threshold/?6C]
+0d86:    a2 6c             MOV XA, [top_osc_max/?6C]
 0d88:    99 11             SEL MB1
 0d8a:    92 f0             OUT PORT0, XA
 0d8c:    99 10             SEL MB0
-0d8e:    a2 6e             MOV XA, [bottom_osc_threshold/?6E]
+0d8e:    a2 6e             MOV XA, [bottom_osc_max/?6E]
 0d90:    99 11             SEL MB1
 0d92:    92 f2             OUT PORT2, XA
 0d94:       e0             RETS

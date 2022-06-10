@@ -257,8 +257,8 @@ fn sub_082f() {
             previous_top_osc_readout = top_osc_readout
             var_70w = bottom_osc_readout
             last_bottom_osc_1 = bottom_osc_readout
-            var_12w = top_osc_threshold
-            var_14w = bottom_osc_threshold
+            var_12w = top_osc_max
+            var_14w = bottom_osc_max
             var_1cw = 0
             var_46 = 0
             var_47 = 0
@@ -268,7 +268,7 @@ fn sub_082f() {
             return
         } else {
             increment_osc_count_and_on_rollover()
-            if var_09.3 && !both_oscs_above_threshold() {
+            if var_09.3 && !both_oscs_above_max() {
                 return
             }
             // lbl_08ac
@@ -287,7 +287,7 @@ fn sub_082f() {
 
     } else if (var_08.1) {
         // lbl_084d
-        if increment_osc_count_and_on_rollover() && !both_oscs_above_threshold() {
+        if increment_osc_count_and_on_rollover() && !both_oscs_above_max() {
             return
         }
         var_08 = 3
@@ -541,16 +541,16 @@ fn update_display() {
     A = var_3f
     sub_01cc(A, HL)
     PORT3 = PORT3 & 1;
-    if var_40 == 0 {
+    if current_digit == 0 {
         var_41 = 0
     }
-    A = var_40
+    A = current_digit
     C = A
     A += 1
     if (A == 3) {
         A = 0
     }
-    var_40 = A
+    current_digit = A
     C -= 1
     if (C == 0xF) {
         A = buf0_16bit[0]
@@ -643,7 +643,7 @@ fn sub_099e() {
             }
             var_46.2 = 1
             var_46.1 = 1
-            var_12w = top_osc_threshold
+            var_12w = top_osc_max
         }
         last_bottom_osc_1 = bottom_osc_readout
         return
@@ -708,10 +708,10 @@ fn increment_osc_count_and_on_rollover() {
 // definitely the core of some signal processing
 fn sub_0a79() -> skip {
     if !var_09.1 {
-        var_09.1 = 1
 
-        top_osc_threshold = top_osc_readout
-        bottom_osc_threshold = bottom_osc_readout
+        top_osc_max = top_osc_readout
+        bottom_osc_max = bottom_osc_readout
+        var_09.1 = 1
         var_09.2 = 0
         var_08.3 = 0
         osc_count[0:2] = 0xE00
@@ -719,20 +719,28 @@ fn sub_0a79() -> skip {
     }
 
     if !var_09.2 {
-        if (top_osc_threshold < top_osc_readout) {
-            top_osc_threshold = top_osc_readout
-            bottom_osc_threshold = bottom_osc_readout
+        // if current top oscillator reading > max
+        // update max from both
+        if top_osc_readout > top_osc_max {
+            top_osc_max = top_osc_readout
+            bottom_osc_max = bottom_osc_readout
             return false
         }
-        if top_osc_threshold >= top_osc_readout + 0xC {
+
+        // if top_osc_readout drops 12 below the max
+        // probably a coin has been thrown in, start processing it
+        if top_osc_readout + 0xC <= top_osc_max {
             var_09.2 = 1
             var_08.3 = 1
             previous_top_osc_readout = top_osc_readout
             var_1f = 0
             var_46 = 0
-            osc_count[0:1]= 0x00
+            osc_count[0:1] = 0x00
             return false
         }
+
+        // if we've gone 0xFFF samples without anything happening
+        // flag to re-initialize next cycle
         osc_count[0:2] += 1
         if osc_count[0:2] == 0 {
             var_09.1 = 0
@@ -740,7 +748,8 @@ fn sub_0a79() -> skip {
         return false
     }
 
-    if top_osc_above_threshold() {
+    // 
+    if top_osc_above_max() {
         var_09.1 = 0
         return false
     }
@@ -751,10 +760,10 @@ fn sub_0a79() -> skip {
 
     sub_0b10()
 
-    if (bottom_osc_readout > bottom_osc_threshold) {
+    if (bottom_osc_readout > bottom_osc_max) {
         return false
     }
-    if (bottom_osc_readout < bottom_osc_threshold + 0xC) {
+    if (bottom_osc_readout < bottom_osc_max + 0xC) {
         return false
     }
 
@@ -797,25 +806,25 @@ fn sub_0b10() {
     }
 }
 
-fn bottom_osc_above_threshold() -> skip {
-    return bottom_osc_above_threshold() && top_osc_above_threshold()
+fn bottom_osc_above_max() -> skip {
+    return bottom_osc_above_max() && top_osc_above_max()
 }
 
 // returns false when bottom_osc_readout drops below the threshold
-fn bottom_osc_above_threshold() -> skip {
-    if (bottom_osc_readout > bottom_osc_threshold) {
+fn bottom_osc_above_max() -> skip {
+    if (bottom_osc_readout > bottom_osc_max) {
         return true;
-    } else if bottom_osc_readout > bottom_osc_threshold - 6 {
+    } else if bottom_osc_readout > bottom_osc_max - 6 {
         return true
     }
     return false
 }
 
 // returns false when top_osc_readout drops below the threshold
-fn top_osc_above_threshold() -> skip {
-    if (top_osc_readout > top_osc_threshold) {
+fn top_osc_above_max() -> skip {
+    if (top_osc_readout > top_osc_max) {
         return true;
-    } else if top_osc_readout > top_osc_threshold - 6 {
+    } else if top_osc_readout > top_osc_max - 6 {
         return true
     }
     return false
