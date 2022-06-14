@@ -252,6 +252,7 @@ def get_known_codelocs():
     locs[0x399] = "collect_samples_for_new_config"
     locs[0x3f9] = "wait_for_coin_detected"
 
+    locs[0x418] = "match_coin_to_config"
     locs[0x4cb] = "is_sample_between_config_values"
     locs[0x4fc] = "copy_new_config"
 

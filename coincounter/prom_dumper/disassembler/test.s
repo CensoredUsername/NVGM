@@ -77,7 +77,7 @@
         ; validate_eeprom_bank_1,
         ; check_environment,
         ; send_eeprom_ewen,
-        ; sub_0418,
+        ; match_coin_to_config,
         ; send_eeprom_ewds,
         ; serial_send_8bit_reversed,
         ; collect_samples_for_new_config,
@@ -155,9 +155,9 @@
 00dc:    51 77             BRCB lbl_0177
 00de:    bf c0             SKT [PORT0.0]
 00e0:    51 77             BRCB lbl_0177
-00e2:    a6 08             SKF [detector_flags_1.2/?08.2]
+00e2:    a6 08             SKF [detector_await_detection/?08.2]
 00e4:       f2             BR lbl_00d7
-00e5: ab 44 18             CALL sub_0418
+00e5: ab 44 18             CALL match_coin_to_config
 00e8:    51 77             BRCB lbl_0177
 00ea: ab 46 b1             CALL reset_watchdog_next_tick
 00ed:    bf eb             SKT [PORT11.2]
@@ -371,7 +371,7 @@
 025e:    50 bd             BRCB lbl_00bd
 0260:    89 64             MOV XA, #64
 0262:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
-0264: ab 44 18             CALL sub_0418
+0264: ab 44 18             CALL match_coin_to_config
 0267:       60             NOP
 0268: ab 46 bc             CALL switch_to_serial_mode
 026b:    9d c2             SET1 [PORT2.0]
@@ -597,13 +597,13 @@
 040e:    89 00             MOV XA, #0
 0410:    92 08             MOV [detector_flags_1/?08], XA
 0412:       ee             RET
-0413:    a6 08   lbl_0413: SKF [detector_flags_1.2/?08.2]
+0413:    a6 08   lbl_0413: SKF [detector_await_detection/?08.2]
 0415:    53 ff             BRCB lbl_03ff
 0417:       e0             RETS
 
-    ; FUNCTION sub_0418 CALLS
+    ; FUNCTION match_coin_to_config CALLS
         ; is_sample_between_config_values
-0418:    89 20   sub_0418: MOV XA, #20
+0418:    89 20 match_coin_to_config: MOV XA, #20
 041a:    92 42             MOV [coin_slot_matched/?42], XA
 041c:    9d 90             SET1 [MBE]
 041e:    8b 00             MOV HL, #0
@@ -1339,16 +1339,16 @@
         ; detect_incoming_coins,
         ; track_bottom_osc_direction_coarse,
         ; increment_osc_count_and_reset_on_rollover
-082f:    a6 08 update_detector: SKF [detector_flags_1.2/?08.2]
+082f:    a6 08 update_detector: SKF [detector_await_detection/?08.2]
 0831:    58 64             BRCB lbl_0864
-0833:    86 08             SKF [detector_flags_1.0/?08.0]
+0833:    86 08             SKF [detector_guard_additional_coins/?08.0]
 0835:       05             BR lbl_083b
-0836:    96 08             SKF [detector_flags_1.1/?08.1]
+0836:    96 08             SKF [detector_guard_await_timeout/?08.1]
 0838:    58 4d             BRCB lbl_084d
 083a:       ee             RET
 083b: ab 4a 79   lbl_083b: CALL detect_incoming_coins
 083e:       ee             RET
-083f:    84 08             CLR1 [detector_flags_1.0/?08.0]
+083f:    84 08             CLR1 [detector_guard_additional_coins/?08.0]
 0841:       70             MOV A, #0
 0842:    93 09             MOV [detector_flags_2/?09], A
 0844:       78             MOV A, #8
