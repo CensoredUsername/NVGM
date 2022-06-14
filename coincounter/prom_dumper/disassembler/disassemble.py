@@ -243,22 +243,43 @@ def get_known_codelocs():
     locs[0x20] = "JMPRST"
 
     locs[0x80] = "RESET"
+
+    locs[0x198] = "wait_250_ms"
+    locs[0x1a5] = "subtract_coin_value_from_cost_remaining"
+    locs[0x1cc] = "bcd_subtract_1digit"
+    locs[0x2e4] = "serial_send_bank_1"
+
+    locs[0x399] = "collect_samples_for_new_config"
+    locs[0x3f9] = "wait_for_coin_detected"
+
+    locs[0x4cb] = "is_sample_between_config_values"
+    locs[0x4fc] = "copy_new_config"
+
     locs[0x5CB] = "INTCSI"
     locs[0x5E3] = "INTT0"
 
     # based on disassembly
-    locs[0xd1c] = "assert_eeprom_cs"
     locs[0x50f] = "check_environment"
     locs[0x563] = "initialize_eeprom"
 
+    locs[0x580] = "serial_send_space_and_8bit"
+    locs[0x598] = "serial_send_8bit_reversed"
+    locs[0x5ab] = "serial_send_return"
+    locs[0x5b1] = "serial_send_space"
+    locs[0x5b7] = "serial_send"
+    locs[0x5c1] = "serial_send_raw"
+    locs[0x5d2] = "serial_wait_until_free"
+    locs[0x5d6] = "convert_to_ascii"
 
     locs[0x632] = "update_gpio"
     locs[0x653] = "read_encoder_setting"
     locs[0x661] = "update_relay"
     locs[0x67e] = "initialize_gpio_and_interrupts"
     locs[0x69c] = "reconfigure_timers"
-    locs[0x6b1] = "reset_watchdog_next_INTT0"
-    locs[0x6b7] = "reset_basic_timer"
+    locs[0x6b1] = "reset_watchdog_next_tick"
+    locs[0x6b7] = "reset_watchdog"
+    locs[0x6bc] = "switch_to_serial_mode"
+    locs[0x6d5] = "switch_from_serial_mode"
     locs[0x6e9] = "get_encoder_readout"
     locs[0x6ec] = "update_IO_OUT"
 
@@ -268,12 +289,20 @@ def get_known_codelocs():
     locs[0x7f6] = "bitbang_serial_4bits"
 
     locs[0x817] = "update_io"
+    locs[0x82f] = "update_detector"
 
-    locs[0xa5f] = "increment_osc_count_and_on_rollover"
+    locs[0x99e] = "track_bottom_osc_direction_coarse"
+    locs[0xa08] = "track_bottom_osc_direction_fine"
 
-    locs[0xb42] = "both_oscs_above_max"
-    locs[0xb4b] = "bottom_osc_above_max"
-    locs[0xb52] = "top_osc_above_max"
+    locs[0xa4f] = "increment_detection_tick_count"
+    locs[0xa5f] = "increment_osc_count_and_reset_on_rollover"
+    locs[0xa79] = "detect_incoming_coins"
+    locs[0xb10] = "track_top_osc_direction"
+
+    locs[0xb42] = "both_oscs_near_or_above_max"
+    locs[0xb4b] = "bottom_osc_near_or_above_max"
+    locs[0xb52] = "top_osc_near_or_above_max"
+    locs[0xb64] = "decrement_counter"
 
     locs[0xb77] = "update_solenoid_state"
 
@@ -281,7 +310,7 @@ def get_known_codelocs():
     locs[0xb96] = "sync_eeprom_to_bank_1"
     locs[0xbd8] = "read_eeprom_to_bank_1"
     locs[0xc06] = "validate_eeprom_bank_1"
-    locs[0xc20] = "validate_eeprom_single_load"
+    locs[0xc20] = "validate_eeprom_four_reads"
     locs[0xc51] = "write_eeprom_from_bank_1"
     locs[0xc66] = "write_eeprom_four_writes"
     locs[0xc90] = "send_eeprom_ewen"
@@ -290,15 +319,16 @@ def get_known_codelocs():
     locs[0xccd] = "send_eeprom_data"
     locs[0xce9] = "read_eeprom_reply"
     locs[0xd07] = "get_eeprom_symbols"
+    locs[0xd1c] = "assert_eeprom_cs"
     locs[0xd2e] = "adc_start_read"
     locs[0xd3b] = "adc_finish_read"
 
-    locs[0xd43] = "really_get_encoder_readout"
-    locs[0xd95] = "do_bank1_magic"
-    locs[0xe21] = "process_magic_lower"
-    locs[0xe62] = "process_magic_upper"
-    locs[0xeaa] = "magic_table_add"
-    locs[0xed1] = "magic_table_subtract"
+    locs[0xd43] = "build_new_config"
+    locs[0xd95] = "accumulate_samples"
+    locs[0xe21] = "build_config_lower"
+    locs[0xe62] = "build_config_upper"
+    locs[0xeaa] = "config_add_upwards_uncertainty"
+    locs[0xed1] = "config_add_downwards_uncertainty"
     locs[0xef8] = "read_bank1"
     locs[0xeff] = "write_bank1"
     locs[0xf06] = "copy_16bit"
@@ -306,10 +336,10 @@ def get_known_codelocs():
     locs[0xf57] = "subtract_16bit"
     locs[0xf6c] = "increment_xa"
 
-    locs[0x1000] = "data_table_1000"
-    locs[0x1078] = "data_indices_1078"
-    locs[0x1080] = "load_table_index"
-    locs[0x1094] = "load_table"
+    locs[0x1000] = "coin_data"
+    locs[0x1078] = "coin_data_indices"
+    locs[0x1080] = "load_coin_data_start"
+    locs[0x1094] = "load_coin_data_next"
     locs[0x109f] = "get_7seg_encoding"
     locs[0x10a8] = "seg7_encoding_table"
 
@@ -329,16 +359,38 @@ def get_known_datalocs():
     locs[0x006]= "C"
     locs[0x007]= "B"
 
-    # locs[0x008]= 
-    locs[0x009]= "detector_flags"
-    locs[0x009, 1] = "detector_ready"
-    locs[0x009, 2] = "detector_triggered"
+    locs[0x008]= "detector_flags_1"
+    locs[0x008, 0]= "detector_guard_additional_coins"
+    locs[0x008, 1]= "detector_guard_await_timeout"
+    locs[0x008, 2]= "detector_await_detection"
+    locs[0x008, 3]= "detector_detecting_top_osc"
+    locs[0x009]= "detector_flags_2"
+    locs[0x009, 0] = "detector_detecting_both_oscs"
+    locs[0x009, 1] = "detector_initialized"
+    locs[0x009, 2] = "detector_top_osc_going_down"
+    locs[0x009, 3] = "detector_all_data_gathered"
 
     locs[0x00a]= "top_osc_readout"
     locs[0x00c]= "bottom_osc_readout"
-    locs[0x00e]= "reset_watchdog_next_INTT0_flag"
+    locs[0x00e]= "reset_watchdog_next_tick_flag"
 
-    locs[0x22]= "last_bottom_osc_2"
+    locs[0x010]= "coin_sample_1"
+    locs[0x012]= "coin_sample_2"
+    locs[0x014]= "coin_sample_3"
+    locs[0x016]= "coin_sample_4"
+    locs[0x018]= "coin_sample_5"
+    locs[0x01a]= "coin_sample_6"
+    locs[0x01c] = "increment_detection_tick_count"
+    locs[0x01e] = "bottom_osc_went_down_flag"
+    locs[0x01f] = "top_osc_went_up_flag"
+
+    locs[0x20]= "top_osc_max_2"
+
+    locs[0x22]= "last_bottom_osc_fine"
+
+    locs[0x24]= "unused_24"
+
+    locs[0x28]= "coin_sample_ptr"
 
     locs[0x02a]= "previous_top_osc_readout"
 
@@ -349,30 +401,73 @@ def get_known_datalocs():
     locs[0x030]= "encoder1_readout"
     locs[0x031]= "encoder2_readout"
     locs[0x032]= "port6_readout"
+    locs[0x034]= "coin_value"
+    locs[0x035]= "coin_value[1]"
     locs[0x036]= "relay_uptime_remaining"
+    locs[0x038]= "eeprom_sync_index"
 
     locs[0x03a]= "solenoid_uptime_remaining"
+    locs[0x03c]= "counter_ticks_remaining"
+    locs[0x03e]= "cost_remaining"
+    locs[0x03f]= "cost_remaining[1]"
 
     locs[0x040]= "current_digit"
+    locs[0x041]= "digit_0_value"
+    locs[0x042]= "coin_slot_matched"
+    locs[0x044]= "unused_44"
 
+    locs[0x046] = "osc_going_up_flags_1"
+    locs[0x046, 0]= "top_osc_going_up"
+    locs[0x046, 1]= "bot_osc_going_up_coarse_copy"
+    locs[0x046, 2]= "bot_osc_going_up_coarse"
+    locs[0x047] = "osc_going_up_flags_2"
+    locs[0x047, 2]= "bot_osc_going_up_fine"
+
+    locs[0x048] = "top_osc_below_max_events"
+
+    locs[0x049]= "task_scheduling_counter"
+
+    locs[0x04a, 0]= "relay_active"
+    locs[0x04a, 1]= "solenoid_active"
+    locs[0x04a, 2]= "counter_active"
+
+    locs[0x04b, 0]= "suppress_eeprom_sync"
+    locs[0x04b, 1]= "sending_ewds"
+    locs[0x04b, 3]= "disable_encoder_sync"
+    locs[0x04c, 0]= "serial_busy"
     locs[0x04d]= "osc_count[0]"
     locs[0x04e]= "osc_count[1]"
     locs[0x04f]= "osc_count[2]"
 
-    locs[0x64]= "buf0_16bit[0]"
-    locs[0x65]= "buf0_16bit[1]"
-    locs[0x66]= "buf0_16bit[2]"
-    locs[0x67]= "buf0_16bit[3]"
-    locs[0x68]= "buf1_16bit[0]"
-    locs[0x69]= "buf1_16bit[1]"
-    locs[0x6a]= "buf1_16bit[2]"
-    locs[0x6b]= "buf1_16bit[3]"
+    locs[0x050]= "config_staging_buffer[0]"
+    locs[0x052]= "config_staging_buffer[2]"
+    locs[0x054]= "config_staging_buffer[4]"
+    locs[0x056]= "config_staging_buffer[6]"
+    locs[0x058]= "config_staging_buffer[8]"
+    locs[0x05A]= "config_staging_buffer[A]"
+    locs[0x05C]= "config_staging_buffer[C]"
+    locs[0x05E]= "config_staging_buffer[E]"
+
+    locs[0x60]= "total_cost"
+    locs[0x61]= "total_cost[1]"
+    locs[0x64]= "temps[0]"
+    locs[0x65]= "temps[1]"
+    locs[0x66]= "temps[2]"
+    locs[0x67]= "temps[3]"
+    locs[0x68]= "temps[4]"
+    locs[0x69]= "temps[5]"
+    locs[0x6a]= "temps[6]"
+    locs[0x6b]= "temps[7]"
 
 
     locs[0x6c]= "top_osc_max"
     locs[0x6e]= "bottom_osc_max"
 
-    locs[0x72]= "last_bottom_osc_1"
+    locs[0x70]= "last_bottom_osc_rough"
+    locs[0x72]= "last_bottom_osc_coarse"
+    locs[0x74]= "unused_74"
+
+    # alternate registers banks are not used
 
     # locs[0x008]= "A1"
     # locs[0x009]= "X1"
@@ -401,7 +496,7 @@ def get_known_datalocs():
     # locs[0x01E]= "C3"
     # locs[0x01F]= "B3"
 
-    locs[0xF80]= "SP"
+    locs[0xF80]= "SP/coin_matching_flags"
 
     locs[0xF82]= "RBS"
     locs[0xF83]= "MBS"
@@ -427,7 +522,7 @@ def get_known_datalocs():
     locs[0xFAC]= "T1"
     locs[0xFAE]= "TMOD1"
 
-    locs[0xFB0]= "PSW"
+    locs[0xFB0]= "PSW/accum_16bit[0]"
     locs[0xFB0, 0]= "RBE"
     locs[0xFB0, 1]= "MBE"
     locs[0xFB0, 2]= "IST0"
@@ -439,12 +534,12 @@ def get_known_datalocs():
 
     locs[0xFB2]= "IPS"
     locs[0xFB3]= "PCC"
-    locs[0xFB4]= "IM0"
+    locs[0xFB4]= "IM0/accum_16bit[1]"
     locs[0xFB5]= "IM1"
     locs[0xFB6]= "IM2"
     locs[0xFB7]= "SCC"
 
-    locs[0xFB8]= "INTA"
+    locs[0xFB8]= "INTA/accum_16bit[2]"
     locs[0xFB8, 0]= "IRQBT"
     locs[0xFB8, 1]= "IEBT"
     locs[0xFB8, 2]= "IRQ4"
@@ -454,7 +549,7 @@ def get_known_datalocs():
     locs[0xFBA, 0]= "IRQW"
     locs[0xFBA, 1]= "IEW"
 
-    locs[0xFBC]= "INTE"
+    locs[0xFBC]= "INTE/accum_16bit[3]"
     locs[0xFBC, 0]= "IRQT0"
     locs[0xFBC, 1]= "IET0"
     locs[0xFBC, 2]= "IRQT1"
@@ -474,10 +569,12 @@ def get_known_datalocs():
     locs[0xFBF, 0]= "IRQ2"
     locs[0xFBF, 1]= "IE2"
 
-    locs[0xFC0]= "BSB0"
+    locs[0xFC0]= "BSB0/accum_16bit[4]"
     locs[0xFC1]= "BSB1"
     locs[0xFC2]= "BSB2"
     locs[0xFC3]= "BSB3"
+
+    locs[0xFC4]= "accum_16bit[5]"
 
     locs[0xFCF]= "SOS"
 

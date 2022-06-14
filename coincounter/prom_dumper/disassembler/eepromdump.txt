@@ -1,0 +1,76 @@
+00: ffff
+01: ffff
+02: ffff
+03: ffff
+04: ffff
+05: ffff
+06: ffff
+07: ffff
+08: ffff
+09: ffff
+0a: ffff
+0b: ffff
+0c: ffff
+0d: ffff
+0e: ffff
+0f: ffff
+10: 0010
+11: a707
+12: da99
+13: b0ca
+14: ff9d
+15: fd00
+16: 5ef1
+17: ff4e
+18: ffff
+19: ffff
+1a: ffff
+1b: ffff
+1c: ffff
+1d: ffff
+1e: ffff
+1f: ffff
+20: ffff
+21: ffff
+22: ffff
+23: ffff
+24: ffff
+25: ffff
+26: ffff
+27: ffff
+28: ffff
+29: ffff
+2a: ffff
+2b: ffff
+2c: ffff
+2d: ffff
+2e: ffff
+2f: ffff
+30: ffff
+31: ffff
+32: ffff
+33: ffff
+34: ffff
+35: ffff
+36: ffff
+37: ffff
+38: ffff
+39: ffff
+3a: ffff
+3b: ffff
+3c: e2ff // bottom/top osc max
+3d: ffff
+3e: ffff
+3f: ffff
+
+interesting part:
+10
+00
+07
+a7 99
+da ca
+b0 9d
+ff 00
+fd f1
+4e 5e
+ff

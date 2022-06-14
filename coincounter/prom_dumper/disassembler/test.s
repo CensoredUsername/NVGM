@@ -73,31 +73,31 @@
 
 
     ; FUNCTION RESET CALLS
-        ; sub_0580,
+        ; serial_send_space_and_8bit,
         ; validate_eeprom_bank_1,
         ; check_environment,
         ; send_eeprom_ewen,
         ; sub_0418,
         ; send_eeprom_ewds,
-        ; sub_0598,
-        ; sub_0399,
+        ; serial_send_8bit_reversed,
+        ; collect_samples_for_new_config,
         ; reconfigure_timers,
-        ; sub_0198,
-        ; sub_01a5,
-        ; sub_05ab,
-        ; sub_05b1,
-        ; reset_watchdog_next_INTT0,
-        ; reset_basic_timer,
-        ; sub_05b7,
-        ; sub_06bc,
-        ; really_get_encoder_readout,
+        ; wait_250_ms,
+        ; subtract_coin_value_from_cost_remaining,
+        ; serial_send_return,
+        ; serial_send_space,
+        ; reset_watchdog_next_tick,
+        ; reset_watchdog,
+        ; serial_send,
+        ; switch_to_serial_mode,
+        ; build_new_config,
         ; write_eeprom_from_bank_1,
-        ; sub_05d2,
-        ; sub_06d5,
+        ; serial_wait_until_free,
+        ; switch_from_serial_mode,
         ; initialize_eeprom,
-        ; sub_02e4,
+        ; serial_send_bank_1,
         ; write_eeprom_four_writes,
-        ; sub_03f9,
+        ; wait_for_coin_detected,
         ; initialize_gpio_and_interrupts,
         ; write_bank1
 0080:    9c b2      RESET: DI
@@ -127,7 +127,7 @@
 00a5:    9c 90             CLR1 [MBE]
 00a7:    b5 85             SET1 [BTM/suppress_display_flag.3/?85.3]
 00a9:    89 00             MOV XA, #0
-00ab:    92 80             MOV [SP/?80], XA
+00ab:    92 80             MOV [SP/coin_matching_flags/?80], XA
 00ad: ab 46 7e             CALL initialize_gpio_and_interrupts
 00b0: ab 45 0f             CALL check_environment
 00b3: ab 45 63             CALL initialize_eeprom
@@ -136,7 +136,7 @@
 00bb:    9d b2             EI
 00bd:    9c 90   lbl_00bd: CLR1 [MBE]
 00bf:    99 10             SEL MB0
-00c1:    84 4b             CLR1 [?4B.0]
+00c1:    84 4b             CLR1 [suppress_eeprom_sync/?4B.0]
 00c3:    be c0             SKF [PORT0.0]
 00c5:       0b             BR lbl_00d1
 00c6:    be c0             SKF [PORT0.0]
@@ -147,61 +147,61 @@
 00ce:       02             BR lbl_00d1
 00cf:    51 de             BRCB lbl_01de
 00d1:       70   lbl_00d1: MOV A, #0
-00d2:    93 09             MOV [detector_flags/?09], A
+00d2:    93 09             MOV [detector_flags_2/?09], A
 00d4:       74             MOV A, #4
-00d5:    93 08             MOV [?08], A
-00d7: ab 46 b1   lbl_00d7: CALL reset_watchdog_next_INTT0
+00d5:    93 08             MOV [detector_flags_1/?08], A
+00d7: ab 46 b1   lbl_00d7: CALL reset_watchdog_next_tick
 00da:    b6 2d             SKF [port1_readout.3/?2D.3]
 00dc:    51 77             BRCB lbl_0177
 00de:    bf c0             SKT [PORT0.0]
 00e0:    51 77             BRCB lbl_0177
-00e2:    a6 08             SKF [?08.2]
+00e2:    a6 08             SKF [detector_flags_1.2/?08.2]
 00e4:       f2             BR lbl_00d7
 00e5: ab 44 18             CALL sub_0418
 00e8:    51 77             BRCB lbl_0177
-00ea: ab 46 b1             CALL reset_watchdog_next_INTT0
+00ea: ab 46 b1             CALL reset_watchdog_next_tick
 00ed:    bf eb             SKT [PORT11.2]
 00ef:    51 77             BRCB lbl_0177
-00f1: ab 41 a5             CALL sub_01a5
+00f1: ab 41 a5             CALL subtract_coin_value_from_cost_remaining
 00f4:    51 77             BRCB lbl_0177
-00f6: ab 46 b1             CALL reset_watchdog_next_INTT0
+00f6: ab 46 b1             CALL reset_watchdog_next_tick
 00f9:    89 64             MOV XA, #64
 00fb:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
-00fd:    95 4a             SET1 [?4A.1]
-00ff:    b6 08   lbl_00ff: SKF [?08.3]
+00fd:    95 4a             SET1 [solenoid_active/?4A.1]
+00ff:    b6 08   lbl_00ff: SKF [detector_detecting_top_osc/?08.3]
 0101:    51 14             BRCB lbl_0114
 0103:    b6 2d             SKF [port1_readout.3/?2D.3]
 0105:    51 2c             BRCB lbl_012c
-0107:    96 4a             SKF [?4A.1]
+0107:    96 4a             SKF [solenoid_active/?4A.1]
 0109:       f5             BR lbl_00ff
-010a: ab 46 b1             CALL reset_watchdog_next_INTT0
+010a: ab 46 b1             CALL reset_watchdog_next_tick
 010d:    89 32             MOV XA, #32
-010f:    92 3c             MOV [?3C], XA
-0111:    a5 4a             SET1 [?4A.2]
+010f:    92 3c             MOV [counter_ticks_remaining/?3C], XA
+0111:    a5 4a             SET1 [counter_active/?4A.2]
 0113:       0d             BR lbl_0121
-0114: ab 46 b1   lbl_0114: CALL reset_watchdog_next_INTT0
+0114: ab 46 b1   lbl_0114: CALL reset_watchdog_next_tick
 0117:    89 00             MOV XA, #0
 0119:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
 011b:    89 64             MOV XA, #64
-011d:    92 3c             MOV [?3C], XA
-011f:    a5 4a             SET1 [?4A.2]
+011d:    92 3c             MOV [counter_ticks_remaining/?3C], XA
+011f:    a5 4a             SET1 [counter_active/?4A.2]
 0121:    b6 2d   lbl_0121: SKF [port1_readout.3/?2D.3]
 0123:       08             BR lbl_012c
-0124: ab 46 b1             CALL reset_watchdog_next_INTT0
-0127:    a6 4a             SKF [?4A.2]
+0124: ab 46 b1             CALL reset_watchdog_next_tick
+0127:    a6 4a             SKF [counter_active/?4A.2]
 0129:       f7             BR lbl_0121
 012a:    51 77             BRCB lbl_0177
 012c:    89 00   lbl_012c: MOV XA, #0
 012e:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
 0130:    89 00             MOV XA, #0
-0132:    92 3c             MOV [?3C], XA
-0134: ab 46 b1   lbl_0134: CALL reset_watchdog_next_INTT0
+0132:    92 3c             MOV [counter_ticks_remaining/?3C], XA
+0134: ab 46 b1   lbl_0134: CALL reset_watchdog_next_tick
 0137:    b7 2d             SKT [port1_readout.3/?2D.3]
 0139:       01             BR lbl_013b
 013a:       f9             BR lbl_0134
-013b:    b5 4b   lbl_013b: SET1 [?4B.3]
-013d:    a2 68             MOV XA, [buf1_16bit[0]/?68]
-013f:    92 3e             MOV [?3E], XA
+013b:    b5 4b   lbl_013b: SET1 [disable_encoder_sync/?4B.3]
+013d:    a2 68             MOV XA, [temps[4]/?68]
+013f:    92 3e             MOV [cost_remaining/?3E], XA
 0141:    9a 01             SKE X, #0
 0143:    51 77             BRCB lbl_0177
 0145:    9a 00             SKE A, #0
@@ -211,69 +211,69 @@
 014d:    89 01             MOV XA, #1
 014f:    92 88             MOV [IO_OUT_pulses_remaining/?88], XA
 0151:    9c 90             CLR1 [MBE]
-0153: ab 46 b1             CALL reset_watchdog_next_INTT0
+0153: ab 46 b1             CALL reset_watchdog_next_tick
 0156:    89 32             MOV XA, #32
 0158:    92 36             MOV [relay_uptime_remaining/?36], XA
-015a:    85 4a             SET1 [?4A.0]
-015c: ab 46 b1   lbl_015c: CALL reset_watchdog_next_INTT0
-015f:    86 4a             SKF [?4A.0]
+015a:    85 4a             SET1 [relay_active/?4A.0]
+015c: ab 46 b1   lbl_015c: CALL reset_watchdog_next_tick
+015f:    86 4a             SKF [relay_active/?4A.0]
 0161:       fa             BR lbl_015c
-0162: ab 41 98             CALL sub_0198
+0162: ab 41 98             CALL wait_250_ms
 0165:    a3 31             MOV A, [encoder2_readout/?31]
 0167:    99 71             MOV X, A
 0169:    a3 30             MOV A, [encoder1_readout/?30]
-016b:    92 3e             MOV [?3E], XA
-016d:    92 60             MOV [?60], XA
-016f:    b4 4b             CLR1 [?4B.3]
-0171: ab 46 b1   lbl_0171: CALL reset_watchdog_next_INTT0
+016b:    92 3e             MOV [cost_remaining/?3E], XA
+016d:    92 60             MOV [total_cost/?60], XA
+016f:    b4 4b             CLR1 [disable_encoder_sync/?4B.3]
+0171: ab 46 b1   lbl_0171: CALL reset_watchdog_next_tick
 0174:    bf eb             SKT [PORT11.2]
 0176:       fa             BR lbl_0171
-0177:    b7 08   lbl_0177: SKT [?08.3]
+0177:    b7 08   lbl_0177: SKT [detector_detecting_top_osc/?08.3]
 0179:    51 90             BRCB lbl_0190
-017b: ab 46 b1   lbl_017b: CALL reset_watchdog_next_INTT0
-017e:    b6 08             SKF [?08.3]
+017b: ab 46 b1   lbl_017b: CALL reset_watchdog_next_tick
+017e:    b6 08             SKF [detector_detecting_top_osc/?08.3]
 0180:       fa             BR lbl_017b
 0181:    89 64             MOV XA, #64
-0183:    92 3c             MOV [?3C], XA
-0185:    a5 4a             SET1 [?4A.2]
-0187:    b6 08   lbl_0187: SKF [?08.3]
+0183:    92 3c             MOV [counter_ticks_remaining/?3C], XA
+0185:    a5 4a             SET1 [counter_active/?4A.2]
+0187:    b6 08   lbl_0187: SKF [detector_detecting_top_osc/?08.3]
 0189:       f1             BR lbl_017b
-018a: ab 46 b1             CALL reset_watchdog_next_INTT0
-018d:    a6 4a             SKF [?4A.2]
+018a: ab 46 b1             CALL reset_watchdog_next_tick
+018d:    a6 4a             SKF [counter_active/?4A.2]
 018f:       f7             BR lbl_0187
 0190:       70   lbl_0190: MOV A, #0
-0191:    93 09             MOV [detector_flags/?09], A
+0191:    93 09             MOV [detector_flags_2/?09], A
 0193:       70             MOV A, #0
-0194:    93 08             MOV [?08], A
+0194:    93 08             MOV [detector_flags_1/?08], A
 0196:    50 bd             BRCB lbl_00bd
 
-    ; FUNCTION sub_0198 CALLS
-        ; reset_watchdog_next_INTT0
-0198:    89 fa   sub_0198: MOV XA, #FA
-019a:    92 3c             MOV [?3C], XA
-019c:    a5 4a             SET1 [?4A.2]
-019e: ab 46 b1   lbl_019e: CALL reset_watchdog_next_INTT0
-01a1:    a6 4a             SKF [?4A.2]
+    ; FUNCTION wait_250_ms CALLS
+        ; reset_watchdog_next_tick
+0198:    89 fa wait_250_ms: MOV XA, #FA
+019a:    92 3c             MOV [counter_ticks_remaining/?3C], XA
+019c:    a5 4a             SET1 [counter_active/?4A.2]
+019e: ab 46 b1   lbl_019e: CALL reset_watchdog_next_tick
+01a1:    a6 4a             SKF [counter_active/?4A.2]
 01a3:       fa             BR lbl_019e
 01a4:       ee             RET
 
-    ; FUNCTION sub_01a5 CALLS
-        ; sub_01cc
-01a5:    a3 30   sub_01a5: MOV A, [encoder1_readout/?30]
+    ; FUNCTION subtract_coin_value_from_cost_remaining CALLS
+        ; bcd_subtract_1digit
+01a5:    a3 30 subtract_coin_value_from_cost_remaining: MOV A, [encoder1_readout/?30]
 01a7:    9a 00             SKE A, #0
 01a9:       06             BR lbl_01b0
 01aa:    a3 31             MOV A, [encoder2_readout/?31]
 01ac:    9a 00             SKE A, #0
 01ae:       01             BR lbl_01b0
 01af:       ee             RET
-01b0:    a2 3e   lbl_01b0: MOV XA, [?3E]
-01b2:    92 68             MOV [buf1_16bit[0]/?68], XA
+01b0:    a2 3e   lbl_01b0: MOV XA, [cost_remaining/?3E]
+01b2:    92 68             MOV [temps[4]/?68], XA
 01b4:    8b 68             MOV HL, #68
 01b6:       e6             CLR1 CY
-01b7:    a3 34             MOV A, [?34]
-01b9: ab 41 cc             CALL sub_01cc
-01bc:    a3 35             MOV A, [?35]
-01be: ab 41 cc             CALL sub_01cc
+01b7:    a3 34             MOV A, [coin_value/?34]
+01b9: ab 41 cc             CALL bcd_subtract_1digit
+01bc:    a3 35             MOV A, [coin_value[1]/?35]
+01be: ab 41 cc             CALL bcd_subtract_1digit
 01c1:       d6             NOT1 CY
 01c2:       d7             SKT CY
 01c3:       ee             RET
@@ -286,8 +286,8 @@
 01ca:       60             NOP ; DEAD
 01cb:       ee             RET ; DEAD
 
-    ; FUNCTION sub_01cc
-01cc:       e9   sub_01cc: XCH A, @HL
+    ; FUNCTION bcd_subtract_1digit
+01cc:       e9 bcd_subtract_1digit: XCH A, @HL
 01cd:       b8             SUBC A, @HL
 01ce:       6a             ADDS A, #A
 01cf:       e8             MOV @HL, A
@@ -320,16 +320,16 @@
 01f4:    be d1             SKF [PORT1.1]
 01f6:       02             BR lbl_01f9
 01f7:    52 48             BRCB lbl_0248
-01f9: ab 43 99   lbl_01f9: CALL sub_0399
+01f9: ab 43 99   lbl_01f9: CALL collect_samples_for_new_config
 01fc:    50 a3             BRCB lbl_00a3
 01fe:    9c b2             DI
-0200: ab 4d 43             CALL really_get_encoder_readout
+0200: ab 4d 43             CALL build_new_config
 0203:    52 42             BRCB lbl_0242
 0205: ab 4c 90             CALL send_eeprom_ewen
-0208: ab 46 b7             CALL reset_basic_timer
+0208: ab 46 b7             CALL reset_watchdog
 020b: ab 4c 51             CALL write_eeprom_from_bank_1
 020e: ab 4c 98             CALL send_eeprom_ewds
-0211: ab 46 b7             CALL reset_basic_timer
+0211: ab 46 b7             CALL reset_watchdog
 0214: ab 4c 06             CALL validate_eeprom_bank_1
 0217:    9c 88             CLR1 [IRQBT]
 0219:    9d b2             EI
@@ -340,12 +340,12 @@
 0222:    9c 8a             CLR1 [IRQW]
 0224:    84 2f             CLR1 [port3_gpio_output.0/?2F.0]
 0226:    94 2f             CLR1 [port3_gpio_output.1/?2F.1]
-0228: ab 46 b1   lbl_0228: CALL reset_watchdog_next_INTT0
+0228: ab 46 b1   lbl_0228: CALL reset_watchdog_next_tick
 022b:    9f 8a             SKTCLR [IRQW]
 022d:       fa             BR lbl_0228
 022e:    85 2f             SET1 [port3_gpio_output.0/?2F.0]
 0230:    95 2f             SET1 [port3_gpio_output.1/?2F.1]
-0232: ab 46 b1   lbl_0232: CALL reset_watchdog_next_INTT0
+0232: ab 46 b1   lbl_0232: CALL reset_watchdog_next_tick
 0235:    9f 8a             SKTCLR [IRQW]
 0237:       fa             BR lbl_0232
 0238:    84 2f             CLR1 [port3_gpio_output.0/?2F.0]
@@ -367,122 +367,122 @@
 0255:    9a 20   lbl_0255: SKE A, #2
 0257:    53 68             BRCB lbl_0368
 0259:    53 09             BRCB lbl_0309
-025b: ab 43 f9   lbl_025b: CALL sub_03f9
+025b: ab 43 f9   lbl_025b: CALL wait_for_coin_detected
 025e:    50 bd             BRCB lbl_00bd
 0260:    89 64             MOV XA, #64
 0262:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
 0264: ab 44 18             CALL sub_0418
 0267:       60             NOP
-0268: ab 46 bc             CALL sub_06bc
+0268: ab 46 bc             CALL switch_to_serial_mode
 026b:    9d c2             SET1 [PORT2.0]
-026d:    a2 42             MOV XA, [?42]
-026f: ab 45 b7             CALL sub_05b7
-0272: ab 45 b1             CALL sub_05b1
-0275:    a2 10             MOV XA, [?10]
-0277: ab 45 80             CALL sub_0580
-027a:    a2 12             MOV XA, [?12]
-027c: ab 45 80             CALL sub_0580
-027f: ab 46 b7             CALL reset_basic_timer
-0282:    a2 14             MOV XA, [?14]
-0284: ab 45 80             CALL sub_0580
-0287:    a2 16             MOV XA, [?16]
-0289: ab 45 80             CALL sub_0580
-028c:    a2 18             MOV XA, [?18]
-028e: ab 45 80             CALL sub_0580
-0291: ab 46 b7             CALL reset_basic_timer
-0294:    a2 1a             MOV XA, [?1A]
-0296: ab 45 80             CALL sub_0580
-0299:    a2 1c             MOV XA, [?1C]
-029b: ab 45 80             CALL sub_0580
-029e:    a3 1e             MOV A, [?1E]
+026d:    a2 42             MOV XA, [coin_slot_matched/?42]
+026f: ab 45 b7             CALL serial_send
+0272: ab 45 b1             CALL serial_send_space
+0275:    a2 10             MOV XA, [coin_sample_1/?10]
+0277: ab 45 80             CALL serial_send_space_and_8bit
+027a:    a2 12             MOV XA, [coin_sample_2/?12]
+027c: ab 45 80             CALL serial_send_space_and_8bit
+027f: ab 46 b7             CALL reset_watchdog
+0282:    a2 14             MOV XA, [coin_sample_3/?14]
+0284: ab 45 80             CALL serial_send_space_and_8bit
+0287:    a2 16             MOV XA, [coin_sample_4/?16]
+0289: ab 45 80             CALL serial_send_space_and_8bit
+028c:    a2 18             MOV XA, [coin_sample_5/?18]
+028e: ab 45 80             CALL serial_send_space_and_8bit
+0291: ab 46 b7             CALL reset_watchdog
+0294:    a2 1a             MOV XA, [coin_sample_6/?1A]
+0296: ab 45 80             CALL serial_send_space_and_8bit
+0299:    a2 1c             MOV XA, [increment_detection_tick_count/?1C]
+029b: ab 45 80             CALL serial_send_space_and_8bit
+029e:    a3 1e             MOV A, [bottom_osc_went_down_flag/?1E]
 02a0:    9a 09             MOV X, #0
-02a2: ab 45 80             CALL sub_0580
-02a5: ab 46 b7             CALL reset_basic_timer
-02a8:    a3 1f             MOV A, [?1F]
+02a2: ab 45 80             CALL serial_send_space_and_8bit
+02a5: ab 46 b7             CALL reset_watchdog
+02a8:    a3 1f             MOV A, [top_osc_went_up_flag/?1F]
 02aa:    9a 09             MOV X, #0
-02ac: ab 45 80             CALL sub_0580
-02af: ab 45 b1             CALL sub_05b1
-02b2: ab 46 b7             CALL reset_basic_timer
+02ac: ab 45 80             CALL serial_send_space_and_8bit
+02af: ab 45 b1             CALL serial_send_space
+02b2: ab 46 b7             CALL reset_watchdog
 02b5:    a2 6c             MOV XA, [top_osc_max/?6C]
-02b7: ab 45 80             CALL sub_0580
+02b7: ab 45 80             CALL serial_send_space_and_8bit
 02ba:    a2 6e             MOV XA, [bottom_osc_max/?6E]
-02bc: ab 45 80             CALL sub_0580
-02bf: ab 45 ab             CALL sub_05ab
-02c2: ab 46 b7             CALL reset_basic_timer
-02c5: ab 45 d2             CALL sub_05d2
-02c8: ab 46 d5             CALL sub_06d5
+02bc: ab 45 80             CALL serial_send_space_and_8bit
+02bf: ab 45 ab             CALL serial_send_return
+02c2: ab 46 b7             CALL reset_watchdog
+02c5: ab 45 d2             CALL serial_wait_until_free
+02c8: ab 46 d5             CALL switch_from_serial_mode
 02cb:    52 5b             BRCB lbl_025b
-02cd: ab 46 bc   lbl_02cd: CALL sub_06bc
-02d0: ab 42 e4             CALL sub_02e4
-02d3: ab 46 b7             CALL reset_basic_timer
-02d6: ab 45 d2             CALL sub_05d2
-02d9: ab 46 d5             CALL sub_06d5
-02dc: ab 46 b7   lbl_02dc: CALL reset_basic_timer
+02cd: ab 46 bc   lbl_02cd: CALL switch_to_serial_mode
+02d0: ab 42 e4             CALL serial_send_bank_1
+02d3: ab 46 b7             CALL reset_watchdog
+02d6: ab 45 d2             CALL serial_wait_until_free
+02d9: ab 46 d5             CALL switch_from_serial_mode
+02dc: ab 46 b7   lbl_02dc: CALL reset_watchdog
 02df:    be c0             SKF [PORT0.0]
 02e1:    50 bd             BRCB lbl_00bd
 02e3:       f8             BR lbl_02dc
 
-    ; FUNCTION sub_02e4 CALLS
-        ; sub_0580,
-        ; sub_05ab,
-        ; reset_basic_timer
-02e4:    99 11   sub_02e4: SEL MB1
+    ; FUNCTION serial_send_bank_1 CALLS
+        ; serial_send_space_and_8bit,
+        ; serial_send_return,
+        ; reset_watchdog
+02e4:    99 11 serial_send_bank_1: SEL MB1
 02e6:    8b 00             MOV HL, #0
 02e8:    9a ff             MOV B, #F
 02ea:    9a 7e   lbl_02ea: MOV C, #7
-02ec: ab 46 b7   lbl_02ec: CALL reset_basic_timer
+02ec: ab 46 b7   lbl_02ec: CALL reset_watchdog
 02ef:    9d 90             SET1 [MBE]
 02f1:    aa 18             MOV XA, @HL
 02f3:    9c 90             CLR1 [MBE]
 02f5:       4f             PUSH BC
-02f6: ab 45 80             CALL sub_0580
+02f6: ab 45 80             CALL serial_send_space_and_8bit
 02f9:       4e             POP BC
 02fa:       c2             INCS L
 02fb:       c2             INCS L
 02fc:       60             NOP
 02fd:       ce             DECS C
 02fe:    52 ec             BRCB lbl_02ec
-0300: ab 45 ab             CALL sub_05ab
+0300: ab 45 ab             CALL serial_send_return
 0303:       c3             INCS H
 0304:       60             NOP
 0305:       cf             DECS B
 0306:    52 ea             BRCB lbl_02ea
 0308:       ee             RET
-0309: ab 43 f9   lbl_0309: CALL sub_03f9
+0309: ab 43 f9   lbl_0309: CALL wait_for_coin_detected
 030c:    50 bd             BRCB lbl_00bd
 030e:    89 64             MOV XA, #64
 0310:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
-0312: ab 46 b1   lbl_0312: CALL reset_watchdog_next_INTT0
+0312: ab 46 b1   lbl_0312: CALL reset_watchdog_next_tick
 0315:    b7 2d             SKT [port1_readout.3/?2D.3]
 0317:       fa             BR lbl_0312
 0318:    9d 90             SET1 [MBE]
 031a:    99 10             SEL MB0
 031c:    8b e0             MOV HL, #E0
-031e:    a2 10             MOV XA, [?10]
+031e:    a2 10             MOV XA, [coin_sample_1/?10]
 0320: ab 4e ff             CALL write_bank1
 0323:       8a             INCS HL
 0324:       8a             INCS HL
-0325:    a2 12             MOV XA, [?12]
+0325:    a2 12             MOV XA, [coin_sample_2/?12]
 0327: ab 4e ff             CALL write_bank1
 032a:       8a             INCS HL
 032b:       8a             INCS HL
-032c:    a2 14             MOV XA, [?14]
+032c:    a2 14             MOV XA, [coin_sample_3/?14]
 032e: ab 4e ff             CALL write_bank1
 0331:       8a             INCS HL
 0332:       8a             INCS HL
-0333:    a2 16             MOV XA, [?16]
+0333:    a2 16             MOV XA, [coin_sample_4/?16]
 0335: ab 4e ff             CALL write_bank1
 0338:       8a             INCS HL
 0339:       8a             INCS HL
-033a:    a2 18             MOV XA, [?18]
+033a:    a2 18             MOV XA, [coin_sample_5/?18]
 033c: ab 4e ff             CALL write_bank1
 033f:       8a             INCS HL
 0340:       8a             INCS HL
-0341:    a2 1a             MOV XA, [?1A]
+0341:    a2 1a             MOV XA, [coin_sample_6/?1A]
 0343: ab 4e ff             CALL write_bank1
 0346:       8a             INCS HL
 0347:       8a             INCS HL
-0348:    a2 1c             MOV XA, [?1C]
+0348:    a2 1c             MOV XA, [increment_detection_tick_count/?1C]
 034a: ab 4e ff             CALL write_bank1
 034d:    9c 90             CLR1 [MBE]
 034f:    9c b2             DI
@@ -496,71 +496,71 @@
 0362:    b5 85             SET1 [BTM/suppress_display_flag.3/?85.3]
 0364:    9d b2             EI
 0366:    53 09             BRCB lbl_0309
-0368: ab 46 bc   lbl_0368: CALL sub_06bc
+0368: ab 46 bc   lbl_0368: CALL switch_to_serial_mode
 036b:    99 10             SEL MB0
 036d:    8b 00             MOV HL, #0
 036f:    9a 7e   lbl_036f: MOV C, #7
-0371: ab 46 b7   lbl_0371: CALL reset_basic_timer
+0371: ab 46 b7   lbl_0371: CALL reset_watchdog
 0374:    9d 90             SET1 [MBE]
 0376:    aa 18             MOV XA, @HL
 0378:    9c 90             CLR1 [MBE]
 037a:       4f             PUSH BC
-037b: ab 45 98             CALL sub_0598
+037b: ab 45 98             CALL serial_send_8bit_reversed
 037e:       4e             POP BC
 037f:       c2             INCS L
 0380:       c2             INCS L
 0381:       60             NOP
 0382:       ce             DECS C
 0383:    53 71             BRCB lbl_0371
-0385: ab 45 ab             CALL sub_05ab
+0385: ab 45 ab             CALL serial_send_return
 0388:       c3             INCS H
 0389:    53 6f             BRCB lbl_036f
-038b: ab 45 d2             CALL sub_05d2
-038e: ab 46 d5             CALL sub_06d5
-0391: ab 46 b7   lbl_0391: CALL reset_basic_timer
+038b: ab 45 d2             CALL serial_wait_until_free
+038e: ab 46 d5             CALL switch_from_serial_mode
+0391: ab 46 b7   lbl_0391: CALL reset_watchdog
 0394:    be c0             SKF [PORT0.0]
 0396:    50 bd             BRCB lbl_00bd
 0398:       f8             BR lbl_0391
 
-    ; FUNCTION sub_0399 CALLS
-        ; sub_03f9,
-        ; reset_watchdog_next_INTT0,
+    ; FUNCTION collect_samples_for_new_config CALLS
+        ; wait_for_coin_detected,
+        ; reset_watchdog_next_tick,
         ; write_bank1
-0399:    9d 90   sub_0399: SET1 [MBE]
+0399:    9d 90 collect_samples_for_new_config: SET1 [MBE]
 039b:    99 10             SEL MB0
 039d:    9a ff             MOV B, #F
 039f:    8b 00             MOV HL, #0
-03a1: ab 43 f9   lbl_03a1: CALL sub_03f9
+03a1: ab 43 f9   lbl_03a1: CALL wait_for_coin_detected
 03a4:    53 ee             BRCB lbl_03ee
 03a6:    89 64             MOV XA, #64
 03a8:    92 3a             MOV [solenoid_uptime_remaining/?3A], XA
-03aa: ab 46 b1   lbl_03aa: CALL reset_watchdog_next_INTT0
+03aa: ab 46 b1   lbl_03aa: CALL reset_watchdog_next_tick
 03ad:    b7 2d             SKT [port1_readout.3/?2D.3]
 03af:       fa             BR lbl_03aa
 03b0:    85 2f             SET1 [port3_gpio_output.0/?2F.0]
 03b2:    95 2f             SET1 [port3_gpio_output.1/?2F.1]
 03b4:    9a 0a             MOV L, #0
-03b6:    a2 10             MOV XA, [?10]
+03b6:    a2 10             MOV XA, [coin_sample_1/?10]
 03b8: ab 4e ff             CALL write_bank1
 03bb:       c2             INCS L
 03bc:       c2             INCS L
-03bd:    a2 12             MOV XA, [?12]
+03bd:    a2 12             MOV XA, [coin_sample_2/?12]
 03bf: ab 4e ff             CALL write_bank1
 03c2:       c2             INCS L
 03c3:       c2             INCS L
-03c4:    a2 14             MOV XA, [?14]
+03c4:    a2 14             MOV XA, [coin_sample_3/?14]
 03c6: ab 4e ff             CALL write_bank1
 03c9:       c2             INCS L
 03ca:       c2             INCS L
-03cb:    a2 16             MOV XA, [?16]
+03cb:    a2 16             MOV XA, [coin_sample_4/?16]
 03cd: ab 4e ff             CALL write_bank1
 03d0:       c2             INCS L
 03d1:       c2             INCS L
-03d2:    a2 18             MOV XA, [?18]
+03d2:    a2 18             MOV XA, [coin_sample_5/?18]
 03d4: ab 4e ff             CALL write_bank1
 03d7:       c2             INCS L
 03d8:       c2             INCS L
-03d9:    a2 1a             MOV XA, [?1A]
+03d9:    a2 1a             MOV XA, [coin_sample_6/?1A]
 03db: ab 4e ff             CALL write_bank1
 03de:       c3             INCS H
 03df:       60             NOP
@@ -579,13 +579,13 @@
 03f6:    93 f3             OUT PORT3, A
 03f8:       ee             RET
 
-    ; FUNCTION sub_03f9 CALLS
-        ; reset_watchdog_next_INTT0
-03f9:       70   sub_03f9: MOV A, #0
-03fa:    93 09             MOV [detector_flags/?09], A
+    ; FUNCTION wait_for_coin_detected CALLS
+        ; reset_watchdog_next_tick
+03f9:       70 wait_for_coin_detected: MOV A, #0
+03fa:    93 09             MOV [detector_flags_2/?09], A
 03fc:       74             MOV A, #4
-03fd:    93 08             MOV [?08], A
-03ff: ab 46 b1   lbl_03ff: CALL reset_watchdog_next_INTT0
+03fd:    93 08             MOV [detector_flags_1/?08], A
+03ff: ab 46 b1   lbl_03ff: CALL reset_watchdog_next_tick
 0402:    bf c0             SKT [PORT0.0]
 0404:       0e             BR lbl_0413
 0405:    bf c0             SKT [PORT0.0]
@@ -595,16 +595,16 @@
 040b:    bf c0             SKT [PORT0.0]
 040d:       05             BR lbl_0413
 040e:    89 00             MOV XA, #0
-0410:    92 08             MOV [?08], XA
+0410:    92 08             MOV [detector_flags_1/?08], XA
 0412:       ee             RET
-0413:    a6 08   lbl_0413: SKF [?08.2]
+0413:    a6 08   lbl_0413: SKF [detector_flags_1.2/?08.2]
 0415:    53 ff             BRCB lbl_03ff
 0417:       e0             RETS
 
     ; FUNCTION sub_0418 CALLS
-        ; sub_04cb
+        ; is_sample_between_config_values
 0418:    89 20   sub_0418: MOV XA, #20
-041a:    92 42             MOV [?42], XA
+041a:    92 42             MOV [coin_slot_matched/?42], XA
 041c:    9d 90             SET1 [MBE]
 041e:    8b 00             MOV HL, #0
 0420:    9a 6f             MOV B, #6
@@ -622,7 +622,7 @@
 0432:       c2   lbl_0432: INCS L
 0433:    aa 18             MOV XA, @HL
 0435:    99 10             SEL MB0
-0437:    92 44             MOV [?44], XA
+0437:    92 44             MOV [unused_44/?44], XA
 0439:    99 11             SEL MB1
 043b:       c2             INCS L
 043c:       c2             INCS L
@@ -630,46 +630,46 @@
 043f:       c2             INCS L
 0440:       c2             INCS L
 0441:    99 10             SEL MB0
-0443:    92 80             MOV [SP/?80], XA
+0443:    92 80             MOV [SP/coin_matching_flags/?80], XA
 0445:    9a 5e             MOV C, #5
 0447:    89 10             MOV XA, #10
 0449:    99 10   lbl_0449: SEL MB0
-044b:    92 28             MOV [?28], XA
+044b:    92 28             MOV [coin_sample_ptr/?28], XA
 044d:    aa 44             XCH XA, DE
 044f:       e4             MOV A, @DE
 0450:       c4             INCS E
 0451:    99 71             MOV X, A
 0453:       e4             MOV A, @DE
 0454:       d9             XCH A, X
-0455: ab 44 cb             CALL sub_04cb
+0455: ab 44 cb             CALL is_sample_between_config_values
 0458:    54 c3             BRCB lbl_04c3
 045a:       8a             INCS HL
 045b:       8a             INCS HL
 045c:       8a             INCS HL
 045d:       8a             INCS HL
-045e:    a2 28             MOV XA, [?28]
+045e:    a2 28             MOV XA, [coin_sample_ptr/?28]
 0460:       c0             INCS A
 0461:       c0             INCS A
 0462:       60             NOP
 0463:       ce             DECS C
 0464:    54 49             BRCB lbl_0449
-0466:    87 80             SKT [SP.0/?80.0]
+0466:    87 80             SKT [SP/coin_matching_flags.0/?80.0]
 0468:       0c             BR lbl_0475
-0469:    a2 1c             MOV XA, [?1C]
+0469:    a2 1c             MOV XA, [increment_detection_tick_count/?1C]
 046b:    aa 54             MOV DE, XA
 046d:    89 2c             MOV XA, #2C
 046f:       e6             CLR1 CY
 0470:    aa fc             SUBC XA, DE
 0472:       d7             SKT CY
 0473:    54 c3             BRCB lbl_04c3
-0475:    97 80   lbl_0475: SKT [SP.1/?80.1]
+0475:    97 80   lbl_0475: SKT [SP/coin_matching_flags.1/?80.1]
 0477:       06             BR lbl_047e
-0478:    a3 1e             MOV A, [?1E]
+0478:    a3 1e             MOV A, [bottom_osc_went_down_flag/?1E]
 047a:    9a 00             SKE A, #0
 047c:    54 c3             BRCB lbl_04c3
-047e:    a7 80   lbl_047e: SKT [SP.2/?80.2]
+047e:    a7 80   lbl_047e: SKT [SP/coin_matching_flags.2/?80.2]
 0480:       06             BR lbl_0487
-0481:    a3 1f             MOV A, [?1F]
+0481:    a3 1f             MOV A, [top_osc_went_up_flag/?1F]
 0483:    9a f0             SKE A, #F
 0485:    54 c3             BRCB lbl_04c3
 0487:    b7 81   lbl_0487: SKT [?81.3]
@@ -703,11 +703,11 @@
 04b4:       98             RORC A
 04b5:    9a 39             MOV X, #3
 04b7:       c0             INCS A
-04b8:    92 42             MOV [?42], XA
+04b8:    92 42             MOV [coin_slot_matched/?42], XA
 04ba:    99 11             SEL MB1
 04bc:    aa 18             MOV XA, @HL
 04be:    99 10             SEL MB0
-04c0:    92 34             MOV [?34], XA
+04c0:    92 34             MOV [coin_value/?34], XA
 04c2:       e0             RETS
 04c3:       4a   lbl_04c3: POP HL
 04c4:       c3             INCS H
@@ -717,8 +717,8 @@
 04c8:    54 22             BRCB lbl_0422
 04ca:       ee             RET
 
-    ; FUNCTION sub_04cb
-04cb:       4b   sub_04cb: PUSH HL
+    ; FUNCTION is_sample_between_config_values
+04cb:       4b is_sample_between_config_values: PUSH HL
 04cc:    92 26             MOV [?26], XA
 04ce:    aa 54             MOV DE, XA
 04d0:    99 11             SEL MB1
@@ -752,8 +752,8 @@
 04fa:       ee             RET ; DEAD
 04fb:       e0             RETS ; DEAD
 
-    ; FUNCTION sub_04fc
-04fc:    8d 50   sub_04fc: MOV DE, #50
+    ; FUNCTION copy_new_config
+04fc:    8d 50 copy_new_config: MOV DE, #50
 04fe:    9a ff             MOV B, #F
 0500:    9d 90             SET1 [MBE]
 0502:    99 10   lbl_0502: SEL MB0
@@ -834,95 +834,95 @@
 0570:    89 ff             MOV XA, #FF
 0572:    92 2c             MOV [port0_readout/?2C], XA
 0574:       ee             RET
-0575:    92 3c             MOV [?3C], XA ; DEAD
+0575:    92 3c             MOV [counter_ticks_remaining/?3C], XA ; DEAD
 0577:    8b 3d             MOV HL, #3D ; DEAD
 
     ; DEAD BLOCK lbl_0579
-0579:    a3 3c   lbl_0579: MOV A, [?3C]
+0579:    a3 3c   lbl_0579: MOV A, [counter_ticks_remaining/?3C]
 057b:       a0             OR A, @HL
 057c:    9a 00             SKE A, #0
 057e:       fa             BR lbl_0579
 057f:       ee             RET
 
-    ; FUNCTION sub_0580 CALLS
-        ; sub_05c1,
-        ; reset_watchdog_next_INTT0,
-        ; sub_05d6,
-        ; sub_05b7
-0580:    aa 46   sub_0580: XCH XA, BC
+    ; FUNCTION serial_send_space_and_8bit CALLS
+        ; serial_send_raw,
+        ; reset_watchdog_next_tick,
+        ; convert_to_ascii,
+        ; serial_send
+0580:    aa 46 serial_send_space_and_8bit: XCH XA, BC
 0582:    89 20             MOV XA, #20
-0584: ab 45 b7             CALL sub_05b7
+0584: ab 45 b7             CALL serial_send
 0587:    99 7f             MOV A, B
-0589: ab 45 d6             CALL sub_05d6
-058c: ab 45 b7             CALL sub_05b7
+0589: ab 45 d6             CALL convert_to_ascii
+058c: ab 45 b7             CALL serial_send
 058f:    99 7e             MOV A, C
-0591: ab 45 d6             CALL sub_05d6
-0594: ab 45 b7             CALL sub_05b7
+0591: ab 45 d6             CALL convert_to_ascii
+0594: ab 45 b7             CALL serial_send
 0597:       ee             RET
 
-    ; FUNCTION sub_0598 CALLS
-        ; sub_05c1,
-        ; reset_watchdog_next_INTT0,
-        ; sub_05d6,
-        ; sub_05b7
-0598:    aa 46   sub_0598: XCH XA, BC
+    ; FUNCTION serial_send_8bit_reversed CALLS
+        ; serial_send_raw,
+        ; reset_watchdog_next_tick,
+        ; convert_to_ascii,
+        ; serial_send
+0598:    aa 46 serial_send_8bit_reversed: XCH XA, BC
 059a:    99 7e             MOV A, C
-059c: ab 45 d6             CALL sub_05d6
-059f: ab 45 b7             CALL sub_05b7
+059c: ab 45 d6             CALL convert_to_ascii
+059f: ab 45 b7             CALL serial_send
 05a2:    99 7f             MOV A, B
-05a4: ab 45 d6             CALL sub_05d6
-05a7: ab 45 b7             CALL sub_05b7
+05a4: ab 45 d6             CALL convert_to_ascii
+05a7: ab 45 b7             CALL serial_send
 05aa:       ee             RET
 
-    ; FUNCTION sub_05ab CALLS
-        ; sub_05c1,
-        ; reset_watchdog_next_INTT0,
-        ; sub_05b7
-05ab:    89 0d   sub_05ab: MOV XA, #D
-05ad: ab 45 b7             CALL sub_05b7
+    ; FUNCTION serial_send_return CALLS
+        ; serial_send_raw,
+        ; reset_watchdog_next_tick,
+        ; serial_send
+05ab:    89 0d serial_send_return: MOV XA, #D
+05ad: ab 45 b7             CALL serial_send
 05b0:       ee             RET
 
-    ; FUNCTION sub_05b1 CALLS
-        ; sub_05c1,
-        ; reset_watchdog_next_INTT0,
-        ; sub_05b7
-05b1:    89 20   sub_05b1: MOV XA, #20
-05b3: ab 45 b7             CALL sub_05b7
+    ; FUNCTION serial_send_space CALLS
+        ; serial_send_raw,
+        ; reset_watchdog_next_tick,
+        ; serial_send
+05b1:    89 20 serial_send_space: MOV XA, #20
+05b3: ab 45 b7             CALL serial_send
 05b6:       ee             RET
 
-    ; FUNCTION sub_05b7 CALLS
-        ; sub_05c1,
-        ; reset_watchdog_next_INTT0
-05b7:    aa 54   sub_05b7: MOV DE, XA
+    ; FUNCTION serial_send CALLS
+        ; serial_send_raw,
+        ; reset_watchdog_next_tick
+05b7:    aa 54 serial_send: MOV DE, XA
 05b9:       e6             CLR1 CY
 05ba:    aa dc             ADDC XA, DE
-05bc: ab 45 c1             CALL sub_05c1
+05bc: ab 45 c1             CALL serial_send_raw
 05bf:    89 ff             MOV XA, #FF
 
-    ; FUNCTION sub_05c1 CALLS
-        ; sub_05c1,
-        ; reset_watchdog_next_INTT0
-05c1:    86 4c   sub_05c1: SKF [?4C.0]
-05c3:       fd             BR sub_05c1
-05c4:    85 4c             SET1 [?4C.0]
+    ; FUNCTION serial_send_raw CALLS
+        ; serial_send_raw,
+        ; reset_watchdog_next_tick
+05c1:    86 4c serial_send_raw: SKF [serial_busy/?4C.0]
+05c3:       fd             BR serial_send_raw
+05c4:    85 4c             SET1 [serial_busy/?4C.0]
 05c6:    92 e4             MOV [SIO/?E4], XA
-05c8:    56 b1             BRCB reset_watchdog_next_INTT0
+05c8:    56 b1             BRCB reset_watchdog_next_tick
 05ca:       ee             RET ; DEAD
 
     ; FUNCTION INTCSI
-05cb:    84 4c     INTCSI: CLR1 [?4C.0]
+05cb:    84 4c     INTCSI: CLR1 [serial_busy/?4C.0]
 05cd:    9d 9d             EI IECSI
 05cf:    9d b2             EI
 05d1:       ef             RETI
 
-    ; FUNCTION sub_05d2 CALLS
-        ; sub_05d2
-05d2:    86 4c   sub_05d2: SKF [?4C.0]
-05d4:       fd             BR sub_05d2
+    ; FUNCTION serial_wait_until_free CALLS
+        ; serial_wait_until_free
+05d2:    86 4c serial_wait_until_free: SKF [serial_busy/?4C.0]
+05d4:       fd             BR serial_wait_until_free
 05d5:       ee             RET
 
-    ; FUNCTION sub_05d6
-05d6:    99 71   sub_05d6: MOV X, A
+    ; FUNCTION convert_to_ascii
+05d6:    99 71 convert_to_ascii: MOV X, A
 05d8:       66             ADDS A, #6
 05d9:       04             BR lbl_05de
 05da:       c0             INCS A
@@ -935,9 +935,9 @@
     ; FUNCTION INTT0 CALLS
         ; update_relay,
         ; toggle_display_if_external_error,
-        ; sub_0b64,
+        ; decrement_counter,
         ; update_IO_OUT,
-        ; sub_082f,
+        ; update_detector,
         ; read_encoder_setting,
         ; update_io,
         ; update_display,
@@ -951,28 +951,28 @@
 05e9:    9c 90             CLR1 [MBE]
 05eb:    89 fa             MOV XA, #FA
 05ed:    92 a6             MOV [TMOD0/?A6], XA
-05ef:    a3 0e             MOV A, [reset_watchdog_next_INTT0_flag/?0E]
+05ef:    a3 0e             MOV A, [reset_watchdog_next_tick_flag/?0E]
 05f1:    9a 50             SKE A, #5
 05f3:       06             BR lbl_05fa
 05f4:       70             MOV A, #0
-05f5:    93 0e             MOV [reset_watchdog_next_INTT0_flag/?0E], A
+05f5:    93 0e             MOV [reset_watchdog_next_tick_flag/?0E], A
 05f7:       78             MOV A, #8
 05f8:    93 85             MOV [BTM/suppress_display_flag/?85], A
-05fa:    a3 49   lbl_05fa: MOV A, [?49]
+05fa:    a3 49   lbl_05fa: MOV A, [task_scheduling_counter/?49]
 05fc:       c0             INCS A
 05fd:       60             NOP
-05fe:    93 49             MOV [?49], A
+05fe:    93 49             MOV [task_scheduling_counter/?49], A
 0600: ab 48 17             CALL update_io
-0603: ab 48 2f             CALL sub_082f
-0606:    86 49             SKF [?49.0]
+0603: ab 48 2f             CALL update_detector
+0606:    86 49             SKF [task_scheduling_counter.0/?49.0]
 0608:    56 1a             BRCB lbl_061a
 060a: ab 4b 77             CALL update_solenoid_state
 060d: ab 46 ec             CALL update_IO_OUT
 0610: ab 46 61             CALL update_relay
 0613: ab 46 53             CALL read_encoder_setting
-0616: ab 4b 64             CALL sub_0b64
+0616: ab 4b 64             CALL decrement_counter
 0619:       0d             BR lbl_0627
-061a:    96 49   lbl_061a: SKF [?49.1]
+061a:    96 49   lbl_061a: SKF [task_scheduling_counter.1/?49.1]
 061c:       04             BR lbl_0621
 061d: ab 4b 96             CALL sync_eeprom_to_bank_1
 0620:       06             BR lbl_0627
@@ -1007,13 +1007,13 @@
 0652:       ee             RET
 
     ; FUNCTION read_encoder_setting
-0653:    b6 4b read_encoder_setting: SKF [?4B.3]
+0653:    b6 4b read_encoder_setting: SKF [disable_encoder_sync/?4B.3]
 0655:       ee             RET
 0656:    a3 31             MOV A, [encoder2_readout/?31]
 0658:    99 71             MOV X, A
 065a:    a3 30             MOV A, [encoder1_readout/?30]
-065c:    92 3e             MOV [?3E], XA
-065e:    92 60             MOV [?60], XA
+065c:    92 3e             MOV [cost_remaining/?3E], XA
+065e:    92 60             MOV [total_cost/?60], XA
 0660:       ee             RET
 
     ; FUNCTION update_relay
@@ -1027,7 +1027,7 @@
 066c:    9a 00             SKE A, #0
 066e:       05             BR lbl_0674
 066f:    84 2f             CLR1 [port3_gpio_output.0/?2F.0]
-0671:    84 4a             CLR1 [?4A.0]
+0671:    84 4a             CLR1 [relay_active/?4A.0]
 0673:       ee             RET
 0674:    85 2f   lbl_0674: SET1 [port3_gpio_output.0/?2F.0]
 0676:    a2 36             MOV XA, [relay_uptime_remaining/?36]
@@ -1039,9 +1039,9 @@
 
     ; FUNCTION initialize_gpio_and_interrupts
 067e:       70 initialize_gpio_and_interrupts: MOV A, #0
-067f:    93 b8             MOV [INTA/?B8], A
+067f:    93 b8             MOV [INTA/accum_16bit[2]/?B8], A
 0681:    93 ba             MOV [INTC/?BA], A
-0683:    93 bc             MOV [INTE/?BC], A
+0683:    93 bc             MOV [INTE/accum_16bit[3]/?BC], A
 0685:    93 bd             MOV [INTF/?BD], A
 0687:    93 be             MOV [INTG/?BE], A
 0689:    93 bf             MOV [INTH/?BF], A
@@ -1070,19 +1070,19 @@
 06ae:    b5 8b             SET1 [WDTM.3/?8B.3] ; DEAD
 06b0:       ee             RET ; DEAD
 
-    ; FUNCTION reset_watchdog_next_INTT0
-06b1:    9c 90 reset_watchdog_next_INTT0: CLR1 [MBE]
+    ; FUNCTION reset_watchdog_next_tick
+06b1:    9c 90 reset_watchdog_next_tick: CLR1 [MBE]
 06b3:       75             MOV A, #5
-06b4:    93 0e             MOV [reset_watchdog_next_INTT0_flag/?0E], A
+06b4:    93 0e             MOV [reset_watchdog_next_tick_flag/?0E], A
 06b6:       ee             RET
 
-    ; FUNCTION reset_basic_timer
-06b7:    9c 90 reset_basic_timer: CLR1 [MBE]
+    ; FUNCTION reset_watchdog
+06b7:    9c 90 reset_watchdog: CLR1 [MBE]
 06b9:    b5 85             SET1 [BTM/suppress_display_flag.3/?85.3]
 06bb:       ee             RET
 
-    ; FUNCTION sub_06bc
-06bc:    9c b2   sub_06bc: DI
+    ; FUNCTION switch_to_serial_mode
+06bc:    9c b2 switch_to_serial_mode: DI
 06be:    9c 98             DI IEBT
 06c0:    9c 9c             DI IET0
 06c2:    85 e2             SET1 [RELT/?E2.0]
@@ -1096,9 +1096,9 @@
 06d2:    9d b2             EI
 06d4:       ee             RET
 
-    ; FUNCTION sub_06d5 CALLS
+    ; FUNCTION switch_from_serial_mode CALLS
         ; reconfigure_timers
-06d5:    9c b2   sub_06d5: DI
+06d5:    9c b2 switch_from_serial_mode: DI
 06d7:    9c 9d             DI IECSI
 06d9:    89 01             MOV XA, #1
 06db:    92 e0             MOV [CSIM/?E0], XA
@@ -1204,23 +1204,23 @@
 
     ; FUNCTION update_display CALLS
         ; bitbang_serial_8bits,
-        ; sub_01cc,
+        ; bcd_subtract_1digit,
         ; get_7seg_encoding
-0774:    a2 60 update_display: MOV XA, [?60]
-0776:    92 64             MOV [buf0_16bit[0]/?64], XA
+0774:    a2 60 update_display: MOV XA, [total_cost/?60]
+0776:    92 64             MOV [temps[0]/?64], XA
 0778:    8b 64             MOV HL, #64
 077a:       e6             CLR1 CY
-077b:    a3 3e             MOV A, [?3E]
-077d: ab 41 cc             CALL sub_01cc
-0780:    a3 3f             MOV A, [?3F]
-0782: ab 41 cc             CALL sub_01cc
+077b:    a3 3e             MOV A, [cost_remaining/?3E]
+077d: ab 41 cc             CALL bcd_subtract_1digit
+0780:    a3 3f             MOV A, [cost_remaining[1]/?3F]
+0782: ab 41 cc             CALL bcd_subtract_1digit
 0785:    a3 f3             IN A, PORT3
 0787:    99 31             AND A, #1
 0789:    93 f3             OUT PORT3, A
 078b:    a3 40             MOV A, [current_digit/?40]
 078d:    9a 00             SKE A, #0
 078f:       02             BR lbl_0792
-0790:    93 41             MOV [?41], A
+0790:    93 41             MOV [digit_0_value/?41], A
 0792:    99 76   lbl_0792: MOV C, A
 0794:       c0             INCS A
 0795:    9a 30             SKE A, #3
@@ -1229,7 +1229,7 @@
 0799:    93 40   lbl_0799: MOV [current_digit/?40], A
 079b:       ce             DECS C
 079c:    57 b2             BRCB lbl_07b2
-079e:    a3 65             MOV A, [buf0_16bit[1]/?65]
+079e:    a3 65             MOV A, [temps[1]/?65]
 07a0:    9a 00             SKE A, #0
 07a2:       09             BR lbl_07ac
 07a3:    bf eb             SKT [PORT11.2]
@@ -1237,17 +1237,17 @@
 07a6:    89 00             MOV XA, #0
 07a8:    9a 8e             MOV C, #8
 07aa:    57 d3             BRCB lbl_07d3
-07ac:    93 41   lbl_07ac: MOV [?41], A
+07ac:    93 41   lbl_07ac: MOV [digit_0_value/?41], A
 07ae:    9a 8e             MOV C, #8
 07b0:    57 d0             BRCB lbl_07d0
 07b2:       ce   lbl_07b2: DECS C
 07b3:    57 cb             BRCB lbl_07cb
-07b5:    a3 64             MOV A, [buf0_16bit[0]/?64]
+07b5:    a3 64             MOV A, [temps[0]/?64]
 07b7:    9a 00             SKE A, #0
 07b9:       0e             BR lbl_07c8
 07ba:    bf eb             SKT [PORT11.2]
 07bc:       0b             BR lbl_07c8
-07bd:    a3 41             MOV A, [?41]
+07bd:    a3 41             MOV A, [digit_0_value/?41]
 07bf:    9a 00             SKE A, #0
 07c1:       05             BR lbl_07c7
 07c2:    89 00             MOV XA, #0
@@ -1332,105 +1332,105 @@
 082c:    92 0c             MOV [bottom_osc_readout/?0C], XA
 082e:       ee             RET
 
-    ; FUNCTION sub_082f CALLS
-        ; both_oscs_above_max,
-        ; sub_0a08,
-        ; sub_0a4f,
-        ; sub_0a79,
-        ; sub_099e,
-        ; increment_osc_count_and_on_rollover
-082f:    a6 08   sub_082f: SKF [?08.2]
+    ; FUNCTION update_detector CALLS
+        ; both_oscs_near_or_above_max,
+        ; track_bottom_osc_direction_fine,
+        ; increment_detection_tick_count,
+        ; detect_incoming_coins,
+        ; track_bottom_osc_direction_coarse,
+        ; increment_osc_count_and_reset_on_rollover
+082f:    a6 08 update_detector: SKF [detector_flags_1.2/?08.2]
 0831:    58 64             BRCB lbl_0864
-0833:    86 08             SKF [?08.0]
+0833:    86 08             SKF [detector_flags_1.0/?08.0]
 0835:       05             BR lbl_083b
-0836:    96 08             SKF [?08.1]
+0836:    96 08             SKF [detector_flags_1.1/?08.1]
 0838:    58 4d             BRCB lbl_084d
 083a:       ee             RET
-083b: ab 4a 79   lbl_083b: CALL sub_0a79
+083b: ab 4a 79   lbl_083b: CALL detect_incoming_coins
 083e:       ee             RET
-083f:    84 08             CLR1 [?08.0]
+083f:    84 08             CLR1 [detector_flags_1.0/?08.0]
 0841:       70             MOV A, #0
-0842:    93 09             MOV [detector_flags/?09], A
+0842:    93 09             MOV [detector_flags_2/?09], A
 0844:       78             MOV A, #8
 0845:    93 4d             MOV [osc_count[0]/?4D], A
 0847:       74             MOV A, #4
 0848:    93 4e             MOV [osc_count[1]/?4E], A
 084a:    93 4f             MOV [osc_count[2]/?4F], A
 084c:       ee             RET
-084d: ab 4a 5f   lbl_084d: CALL increment_osc_count_and_on_rollover
+084d: ab 4a 5f   lbl_084d: CALL increment_osc_count_and_reset_on_rollover
 0850:       04             BR lbl_0855
-0851: ab 4b 42             CALL both_oscs_above_max
+0851: ab 4b 42             CALL both_oscs_near_or_above_max
 0854:       ee             RET
 0855:       73   lbl_0855: MOV A, #3
-0856:    93 08             MOV [?08], A
+0856:    93 08             MOV [detector_flags_1/?08], A
 0858:       70             MOV A, #0
-0859:    93 09             MOV [detector_flags/?09], A
-085b:    84 4b             CLR1 [?4B.0]
+0859:    93 09             MOV [detector_flags_2/?09], A
+085b:    84 4b             CLR1 [suppress_eeprom_sync/?4B.0]
 085d:    be c0             SKF [PORT0.0]
 085f:       ee             RET
 0860:       70             MOV A, #0
-0861:    93 08             MOV [?08], A
+0861:    93 08             MOV [detector_flags_1/?08], A
 0863:       ee             RET
-0864:    86 09   lbl_0864: SKF [detector_flags.0/?09.0]
+0864:    86 09   lbl_0864: SKF [detector_detecting_both_oscs/?09.0]
 0866:    58 a2             BRCB lbl_08a2
-0868: ab 4a 79             CALL sub_0a79
+0868: ab 4a 79             CALL detect_incoming_coins
 086b:       ee             RET
 086c:       71             MOV A, #1
-086d:    93 09             MOV [detector_flags/?09], A
-086f:    85 4b             SET1 [?4B.0]
+086d:    93 09             MOV [detector_flags_2/?09], A
+086f:    85 4b             SET1 [suppress_eeprom_sync/?4B.0]
 0871:    a2 0a             MOV XA, [top_osc_readout/?0A]
-0873:    92 10             MOV [?10], XA
-0875:    92 18             MOV [?18], XA
-0877:    92 20             MOV [?20], XA
-0879:    92 24             MOV [?24], XA
-087b:    92 74             MOV [?74], XA
+0873:    92 10             MOV [coin_sample_1/?10], XA
+0875:    92 18             MOV [coin_sample_5/?18], XA
+0877:    92 20             MOV [top_osc_max_2/?20], XA
+0879:    92 24             MOV [unused_24/?24], XA
+087b:    92 74             MOV [unused_74/?74], XA
 087d:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 087f:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-0881:    92 70             MOV [?70], XA
-0883:    92 72             MOV [last_bottom_osc_1/?72], XA
+0881:    92 70             MOV [last_bottom_osc_rough/?70], XA
+0883:    92 72             MOV [last_bottom_osc_coarse/?72], XA
 0885:    a2 6c             MOV XA, [top_osc_max/?6C]
-0887:    92 12             MOV [?12], XA
+0887:    92 12             MOV [coin_sample_2/?12], XA
 0889:    a2 6e             MOV XA, [bottom_osc_max/?6E]
-088b:    92 14             MOV [?14], XA
+088b:    92 14             MOV [coin_sample_3/?14], XA
 088d:    89 00             MOV XA, #0
-088f:    92 1c             MOV [?1C], XA
-0891:    93 46             MOV [?46], A
-0893:    93 47             MOV [?47], A
-0895:    93 1e             MOV [?1E], A
-0897:    93 48             MOV [?48], A
+088f:    92 1c             MOV [increment_detection_tick_count/?1C], XA
+0891:    93 46             MOV [osc_going_up_flags_1/?46], A
+0893:    93 47             MOV [osc_going_up_flags_2/?47], A
+0895:    93 1e             MOV [bottom_osc_went_down_flag/?1E], A
+0897:    93 48             MOV [top_osc_below_max_events/?48], A
 0899:       78             MOV A, #8
 089a:    93 4d             MOV [osc_count[0]/?4D], A
 089c:       74             MOV A, #4
 089d:    93 4e             MOV [osc_count[1]/?4E], A
 089f:    93 4f             MOV [osc_count[2]/?4F], A
 08a1:       ee             RET
-08a2: ab 4a 5f   lbl_08a2: CALL increment_osc_count_and_on_rollover
-08a5:    b7 09             SKT [detector_flags.3/?09.3]
+08a2: ab 4a 5f   lbl_08a2: CALL increment_osc_count_and_reset_on_rollover
+08a5:    b7 09             SKT [detector_all_data_gathered/?09.3]
 08a7:       04             BR lbl_08ac
-08a8: ab 4b 42             CALL both_oscs_above_max
+08a8: ab 4b 42             CALL both_oscs_near_or_above_max
 08ab:       ee             RET
-08ac: ab 4b 42   lbl_08ac: CALL both_oscs_above_max
+08ac: ab 4b 42   lbl_08ac: CALL both_oscs_near_or_above_max
 08af:    58 d1             BRCB lbl_08d1
-08b1:    a2 12             MOV XA, [?12]
+08b1:    a2 12             MOV XA, [coin_sample_2/?12]
 08b3:    aa 54             MOV DE, XA
-08b5:    a2 10             MOV XA, [?10]
+08b5:    a2 10             MOV XA, [coin_sample_1/?10]
 08b7:       e6             CLR1 CY
 08b8:    aa fc             SUBC XA, DE
 08ba:       d6             NOT1 CY
 08bb:       d7             SKT CY
 08bc:    89 00             MOV XA, #0
-08be:    92 16             MOV [?16], XA
-08c0:    a2 10             MOV XA, [?10]
+08be:    92 16             MOV [coin_sample_4/?16], XA
+08c0:    a2 10             MOV XA, [coin_sample_1/?10]
 08c2:    aa 54             MOV DE, XA
-08c4:    a2 18             MOV XA, [?18]
+08c4:    a2 18             MOV XA, [coin_sample_5/?18]
 08c6:       e6             CLR1 CY
 08c7:    aa fc             SUBC XA, DE
 08c9:       d6             NOT1 CY
 08ca:       d7             SKT CY
 08cb:    89 00             MOV XA, #0
-08cd:    92 1a             MOV [?1A], XA
+08cd:    92 1a             MOV [coin_sample_6/?1A], XA
 08cf:    58 55             BRCB lbl_0855
-08d1:    a2 14   lbl_08d1: MOV XA, [?14]
+08d1:    a2 14   lbl_08d1: MOV XA, [coin_sample_3/?14]
 08d3:    aa 54             MOV DE, XA
 08d5:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 08d7:       e6             CLR1 CY
@@ -1438,10 +1438,10 @@
 08da:       d7             SKT CY
 08db:       04             BR lbl_08e0
 08dc:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-08de:    92 14             MOV [?14], XA
-08e0:    97 46   lbl_08e0: SKT [?46.1]
+08de:    92 14             MOV [coin_sample_3/?14], XA
+08e0:    97 46   lbl_08e0: SKT [bot_osc_going_up_coarse_copy/?46.1]
 08e2:    58 f5             BRCB lbl_08f5
-08e4:    a2 12             MOV XA, [?12]
+08e4:    a2 12             MOV XA, [coin_sample_2/?12]
 08e6:    aa 54             MOV DE, XA
 08e8:    a2 0a             MOV XA, [top_osc_readout/?0A]
 08ea:       e6             CLR1 CY
@@ -1449,55 +1449,55 @@
 08ed:       d7             SKT CY
 08ee:    59 04             BRCB lbl_0904
 08f0:    a2 0a             MOV XA, [top_osc_readout/?0A]
-08f2:    92 12             MOV [?12], XA
+08f2:    92 12             MOV [coin_sample_2/?12], XA
 08f4:       0f             BR lbl_0904
 08f5:    a2 0a   lbl_08f5: MOV XA, [top_osc_readout/?0A]
 08f7:    aa 54             MOV DE, XA
-08f9:    a2 18             MOV XA, [?18]
+08f9:    a2 18             MOV XA, [coin_sample_5/?18]
 08fb:       e6             CLR1 CY
 08fc:    aa fc             SUBC XA, DE
 08fe:       d7             SKT CY
 08ff:       04             BR lbl_0904
 0900:    a2 0a             MOV XA, [top_osc_readout/?0A]
-0902:    92 18             MOV [?18], XA
-0904: ab 49 9e   lbl_0904: CALL sub_099e
-0907: ab 4a 08             CALL sub_0a08
-090a: ab 4a 4f             CALL sub_0a4f
+0902:    92 18             MOV [coin_sample_5/?18], XA
+0904: ab 49 9e   lbl_0904: CALL track_bottom_osc_direction_coarse
+0907: ab 4a 08             CALL track_bottom_osc_direction_fine
+090a: ab 4a 4f             CALL increment_detection_tick_count
 090d:    a2 0a             MOV XA, [top_osc_readout/?0A]
 090f:    aa 54             MOV DE, XA
-0911:    a2 20             MOV XA, [?20]
+0911:    a2 20             MOV XA, [top_osc_max_2/?20]
 0913:       e6             CLR1 CY
 0914:    aa fc             SUBC XA, DE
 0916:       d7             SKT CY
 0917:       08             BR lbl_0920
 0918:    a2 0a             MOV XA, [top_osc_readout/?0A]
-091a:    92 20             MOV [?20], XA
-091c:    94 09             CLR1 [detector_ready/?09.1]
+091a:    92 20             MOV [top_osc_max_2/?20], XA
+091c:    94 09             CLR1 [detector_initialized/?09.1]
 091e:    59 38             BRCB lbl_0938
-0920:    96 09   lbl_0920: SKF [detector_ready/?09.1]
+0920:    96 09   lbl_0920: SKF [detector_initialized/?09.1]
 0922:    59 38             BRCB lbl_0938
 0924:       68             ADDS A, #8
 0925:    59 38             BRCB lbl_0938
-0927:    95 09             SET1 [detector_ready/?09.1]
-0929:    a2 20             MOV XA, [?20]
-092b:    92 24             MOV [?24], XA
-092d:    82 48             INCS [?48]
+0927:    95 09             SET1 [detector_initialized/?09.1]
+0929:    a2 20             MOV XA, [top_osc_max_2/?20]
+092b:    92 24             MOV [unused_24/?24], XA
+092d:    82 48             INCS [top_osc_below_max_events/?48]
 092f:       60             NOP
-0930:    a3 48             MOV A, [?48]
+0930:    a3 48             MOV A, [top_osc_below_max_events/?48]
 0932:    9a 30             SKE A, #3
 0934:       03             BR lbl_0938
-0935:    b5 09             SET1 [detector_flags.3/?09.3]
+0935:    b5 09             SET1 [detector_all_data_gathered/?09.3]
 0937:       ee             RET
 0938:    a2 0c   lbl_0938: MOV XA, [bottom_osc_readout/?0C]
 093a:    aa 54             MOV DE, XA
-093c:    a2 70             MOV XA, [?70]
+093c:    a2 70             MOV XA, [last_bottom_osc_rough/?70]
 093e:       e6             CLR1 CY
 093f:    aa fc             SUBC XA, DE
 0941:       d7             SKT CY
 0942:    59 70             BRCB lbl_0970
-0944:    86 46             SKF [?46.0]
+0944:    86 46             SKF [top_osc_going_up/?46.0]
 0946:    59 60             BRCB lbl_0960
-0948:    a2 70             MOV XA, [?70]
+0948:    a2 70             MOV XA, [last_bottom_osc_rough/?70]
 094a:    aa 54             MOV DE, XA
 094c:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 094e:       e6             CLR1 CY
@@ -1508,25 +1508,25 @@
 0956:       d6             NOT1 CY
 0957:       d7             SKT CY
 0958:       ee             RET
-0959:    85 46             SET1 [?46.0]
+0959:    85 46             SET1 [top_osc_going_up/?46.0]
 095b:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-095d:    92 70             MOV [?70], XA
+095d:    92 70             MOV [last_bottom_osc_rough/?70], XA
 095f:       ee             RET
 0960:    a2 0c   lbl_0960: MOV XA, [bottom_osc_readout/?0C]
 0962:    aa 54             MOV DE, XA
-0964:    a2 70             MOV XA, [?70]
+0964:    a2 70             MOV XA, [last_bottom_osc_rough/?70]
 0966:       e6             CLR1 CY
 0967:    aa fc             SUBC XA, DE
 0969:       d7             SKT CY
 096a:       ee             RET
 096b:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-096d:    92 70             MOV [?70], XA
+096d:    92 70             MOV [last_bottom_osc_rough/?70], XA
 096f:       ee             RET
-0970:    87 46   lbl_0970: SKT [?46.0]
+0970:    87 46   lbl_0970: SKT [top_osc_going_up/?46.0]
 0972:    59 8e             BRCB lbl_098e
 0974:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0976:    aa 54             MOV DE, XA
-0978:    a2 70             MOV XA, [?70]
+0978:    a2 70             MOV XA, [last_bottom_osc_rough/?70]
 097a:       e6             CLR1 CY
 097b:    aa fc             SUBC XA, DE
 097d:    8d 19             MOV DE, #19
@@ -1535,12 +1535,12 @@
 0982:       d6             NOT1 CY
 0983:       d7             SKT CY
 0984:       ee             RET
-0985:    84 46             CLR1 [?46.0]
-0987:    b5 09             SET1 [detector_flags.3/?09.3]
+0985:    84 46             CLR1 [top_osc_going_up/?46.0]
+0987:    b5 09             SET1 [detector_all_data_gathered/?09.3]
 0989:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-098b:    92 70             MOV [?70], XA
+098b:    92 70             MOV [last_bottom_osc_rough/?70], XA
 098d:       ee             RET
-098e:    a2 70   lbl_098e: MOV XA, [?70]
+098e:    a2 70   lbl_098e: MOV XA, [last_bottom_osc_rough/?70]
 0990:    aa 54             MOV DE, XA
 0992:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0994:       e6             CLR1 CY
@@ -1548,32 +1548,32 @@
 0997:       d7             SKT CY
 0998:       ee             RET
 0999:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
-099b:    92 70             MOV [?70], XA
+099b:    92 70             MOV [last_bottom_osc_rough/?70], XA
 099d:       ee             RET
 
-    ; FUNCTION sub_099e
-099e:    a2 0c   sub_099e: MOV XA, [bottom_osc_readout/?0C]
+    ; FUNCTION track_bottom_osc_direction_coarse
+099e:    a2 0c track_bottom_osc_direction_coarse: MOV XA, [bottom_osc_readout/?0C]
 09a0:    aa 54             MOV DE, XA
-09a2:    a2 22             MOV XA, [last_bottom_osc_2/?22]
+09a2:    a2 22             MOV XA, [last_bottom_osc_fine/?22]
 09a4:       e6             CLR1 CY
 09a5:    aa fc             SUBC XA, DE
 09a7:       d7             SKT CY
 09a8:    59 c1             BRCB lbl_09c1
-09aa:    a6 46             SKF [?46.2]
+09aa:    a6 46             SKF [bot_osc_going_up_coarse/?46.2]
 09ac:       0f             BR lbl_09bc
 09ad:    8d f8             MOV DE, #F8
 09af:       e6             CLR1 CY
 09b0:    aa fc             SUBC XA, DE
 09b2:       d7             SKT CY
 09b3:       ee             RET
-09b4:    a5 46             SET1 [?46.2]
-09b6:    95 46             SET1 [?46.1]
+09b4:    a5 46             SET1 [bot_osc_going_up_coarse/?46.2]
+09b6:    95 46             SET1 [bot_osc_going_up_coarse_copy/?46.1]
 09b8:    a2 6c             MOV XA, [top_osc_max/?6C]
-09ba:    92 12             MOV [?12], XA
+09ba:    92 12             MOV [coin_sample_2/?12], XA
 09bc:    a2 0c   lbl_09bc: MOV XA, [bottom_osc_readout/?0C]
-09be:    92 22             MOV [last_bottom_osc_2/?22], XA
+09be:    92 22             MOV [last_bottom_osc_fine/?22], XA
 09c0:       ee             RET
-09c1:    a7 46   lbl_09c1: SKT [?46.2]
+09c1:    a7 46   lbl_09c1: SKT [bot_osc_going_up_coarse/?46.2]
 09c3:       0c             BR lbl_09d0
 09c4:    8d 08             MOV DE, #8
 09c6:       e6             CLR1 CY
@@ -1581,10 +1581,10 @@
 09c9:       d6             NOT1 CY
 09ca:       d7             SKT CY
 09cb:       ee             RET
-09cc:    a4 46             CLR1 [?46.2]
-09ce:    94 46             CLR1 [?46.1]
+09cc:    a4 46             CLR1 [bot_osc_going_up_coarse/?46.2]
+09ce:    94 46             CLR1 [bot_osc_going_up_coarse_copy/?46.1]
 09d0:    a2 0c   lbl_09d0: MOV XA, [bottom_osc_readout/?0C]
-09d2:    92 22             MOV [last_bottom_osc_2/?22], XA
+09d2:    92 22             MOV [last_bottom_osc_fine/?22], XA
 09d4:       ee             RET
 09d5:    a2 0a             MOV XA, [top_osc_readout/?0A] ; DEAD
 09d7:    aa 54             MOV DE, XA ; DEAD
@@ -1593,14 +1593,14 @@
 09dc:    aa fc             SUBC XA, DE ; DEAD
 09de:       d7             SKT CY ; DEAD
 09df:    59 f2             BRCB lbl_09f2 ; DEAD
-09e1:    b6 46             SKF [?46.3] ; DEAD
+09e1:    b6 46             SKF [osc_going_up_flags_1.3/?46.3] ; DEAD
 09e3:       09             BR lbl_09ed ; DEAD
 09e4:    8d f8             MOV DE, #F8 ; DEAD
 09e6:       e6             CLR1 CY ; DEAD
 09e7:    aa fc             SUBC XA, DE ; DEAD
 09e9:       d7             SKT CY ; DEAD
 09ea:       ee             RET ; DEAD
-09eb:    b5 46             SET1 [?46.3] ; DEAD
+09eb:    b5 46             SET1 [osc_going_up_flags_1.3/?46.3] ; DEAD
 
     ; DEAD BLOCK lbl_09ed
 09ed:    a2 0a   lbl_09ed: MOV XA, [top_osc_readout/?0A]
@@ -1608,7 +1608,7 @@
 09f1:       ee             RET
 
     ; DEAD BLOCK lbl_09f2
-09f2:    b7 46   lbl_09f2: SKT [?46.3]
+09f2:    b7 46   lbl_09f2: SKT [osc_going_up_flags_1.3/?46.3]
 09f4:       0e             BR lbl_0a03
 09f5:    8d 08             MOV DE, #8
 09f7:       e6             CLR1 CY
@@ -1616,26 +1616,26 @@
 09fa:       d6             NOT1 CY
 09fb:       d7             SKT CY
 09fc:       ee             RET
-09fd:    b4 46             CLR1 [?46.3]
+09fd:    b4 46             CLR1 [osc_going_up_flags_1.3/?46.3]
 09ff:    a2 2a             MOV XA, [previous_top_osc_readout/?2A]
-0a01:    92 18             MOV [?18], XA
+0a01:    92 18             MOV [coin_sample_5/?18], XA
 
     ; DEAD BLOCK lbl_0a03
 0a03:    a2 0a   lbl_0a03: MOV XA, [top_osc_readout/?0A]
 0a05:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 0a07:       ee             RET
 
-    ; FUNCTION sub_0a08
-0a08:    a2 0c   sub_0a08: MOV XA, [bottom_osc_readout/?0C]
+    ; FUNCTION track_bottom_osc_direction_fine
+0a08:    a2 0c track_bottom_osc_direction_fine: MOV XA, [bottom_osc_readout/?0C]
 0a0a:    aa 54             MOV DE, XA
-0a0c:    a2 72             MOV XA, [last_bottom_osc_1/?72]
+0a0c:    a2 72             MOV XA, [last_bottom_osc_coarse/?72]
 0a0e:       e6             CLR1 CY
 0a0f:    aa fc             SUBC XA, DE
 0a11:       d7             SKT CY
 0a12:    5a 30             BRCB lbl_0a30
-0a14:    a6 47             SKF [?47.2]
+0a14:    a6 47             SKF [bot_osc_going_up_fine/?47.2]
 0a16:    5a 2b             BRCB lbl_0a2b
-0a18:    a2 72             MOV XA, [last_bottom_osc_1/?72]
+0a18:    a2 72             MOV XA, [last_bottom_osc_coarse/?72]
 0a1a:    aa 54             MOV DE, XA
 0a1c:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0a1e:       e6             CLR1 CY
@@ -1646,15 +1646,15 @@
 0a26:       d6             NOT1 CY
 0a27:       d7             SKT CY
 0a28:       ee             RET
-0a29:    a5 47             SET1 [?47.2]
+0a29:    a5 47             SET1 [bot_osc_going_up_fine/?47.2]
 0a2b:    a2 0c   lbl_0a2b: MOV XA, [bottom_osc_readout/?0C]
-0a2d:    92 72             MOV [last_bottom_osc_1/?72], XA
+0a2d:    92 72             MOV [last_bottom_osc_coarse/?72], XA
 0a2f:       ee             RET
-0a30:    a7 47   lbl_0a30: SKT [?47.2]
+0a30:    a7 47   lbl_0a30: SKT [bot_osc_going_up_fine/?47.2]
 0a32:    5a 4a             BRCB lbl_0a4a
 0a34:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0a36:    aa 54             MOV DE, XA
-0a38:    a2 72             MOV XA, [last_bottom_osc_1/?72]
+0a38:    a2 72             MOV XA, [last_bottom_osc_coarse/?72]
 0a3a:       e6             CLR1 CY
 0a3b:    aa fc             SUBC XA, DE
 0a3d:    8d 02             MOV DE, #2
@@ -1663,27 +1663,27 @@
 0a42:       d6             NOT1 CY
 0a43:       d7             SKT CY
 0a44:       ee             RET
-0a45:    a4 47             CLR1 [?47.2]
+0a45:    a4 47             CLR1 [bot_osc_going_up_fine/?47.2]
 0a47:       7f             MOV A, #F
-0a48:    93 1e             MOV [?1E], A
+0a48:    93 1e             MOV [bottom_osc_went_down_flag/?1E], A
 0a4a:    a2 0c   lbl_0a4a: MOV XA, [bottom_osc_readout/?0C]
-0a4c:    92 72             MOV [last_bottom_osc_1/?72], XA
+0a4c:    92 72             MOV [last_bottom_osc_coarse/?72], XA
 0a4e:       ee             RET
 
-    ; FUNCTION sub_0a4f CALLS
+    ; FUNCTION increment_detection_tick_count CALLS
         ; increment_xa
-0a4f:    a2 1c   sub_0a4f: MOV XA, [?1C]
+0a4f:    a2 1c increment_detection_tick_count: MOV XA, [increment_detection_tick_count/?1C]
 0a51: ab 4f 6c             CALL increment_xa
 0a54:    9a 00             SKE A, #0
 0a56:       05             BR lbl_0a5c
 0a57:    9a 01             SKE X, #0
 0a59:       02             BR lbl_0a5c
 0a5a:    89 ff             MOV XA, #FF
-0a5c:    92 1c   lbl_0a5c: MOV [?1C], XA
+0a5c:    92 1c   lbl_0a5c: MOV [increment_detection_tick_count/?1C], XA
 0a5e:       ee             RET
 
-    ; FUNCTION increment_osc_count_and_on_rollover
-0a5f:    8b 4d increment_osc_count_and_on_rollover: MOV HL, #4D
+    ; FUNCTION increment_osc_count_and_reset_on_rollover
+0a5f:    8b 4d increment_osc_count_and_reset_on_rollover: MOV HL, #4D
 0a61:    99 02             INCS @HL
 0a63:       ee             RET
 0a64:    8b 4e             MOV HL, #4E
@@ -1693,32 +1693,32 @@
 0a6b:    99 02             INCS @HL
 0a6d:       ee             RET
 0a6e:       74             MOV A, #4
-0a6f:    93 08             MOV [?08], A
+0a6f:    93 08             MOV [detector_flags_1/?08], A
 0a71:       70             MOV A, #0
-0a72:    93 09             MOV [detector_flags/?09], A
-0a74:    93 46             MOV [?46], A
-0a76:    84 4b             CLR1 [?4B.0]
+0a72:    93 09             MOV [detector_flags_2/?09], A
+0a74:    93 46             MOV [osc_going_up_flags_1/?46], A
+0a76:    84 4b             CLR1 [suppress_eeprom_sync/?4B.0]
 0a78:       ee             RET
 
-    ; FUNCTION sub_0a79 CALLS
-        ; sub_0b10,
-        ; top_osc_above_max
-0a79:    96 09   sub_0a79: SKF [detector_ready/?09.1]
+    ; FUNCTION detect_incoming_coins CALLS
+        ; track_top_osc_direction,
+        ; top_osc_near_or_above_max
+0a79:    96 09 detect_incoming_coins: SKF [detector_initialized/?09.1]
 0a7b:    5a 94             BRCB lbl_0a94
 0a7d:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0a7f:    92 6e             MOV [bottom_osc_max/?6E], XA
 0a81:    a2 0a             MOV XA, [top_osc_readout/?0A]
 0a83:    92 6c             MOV [top_osc_max/?6C], XA
-0a85:    95 09             SET1 [detector_ready/?09.1]
-0a87:    a4 09             CLR1 [detector_triggered/?09.2]
-0a89:    b4 08             CLR1 [?08.3]
+0a85:    95 09             SET1 [detector_initialized/?09.1]
+0a87:    a4 09             CLR1 [detector_top_osc_going_down/?09.2]
+0a89:    b4 08             CLR1 [detector_detecting_top_osc/?08.3]
 0a8b:       70             MOV A, #0
 0a8c:    93 4d             MOV [osc_count[0]/?4D], A
 0a8e:    93 4e             MOV [osc_count[1]/?4E], A
 0a90:       7e             MOV A, #E
 0a91:    93 4f             MOV [osc_count[2]/?4F], A
 0a93:       ee             RET
-0a94:    a6 09   lbl_0a94: SKF [detector_triggered/?09.2]
+0a94:    a6 09   lbl_0a94: SKF [detector_top_osc_going_down/?09.2]
 0a96:    5a d6             BRCB lbl_0ad6
 0a98:    a2 0a             MOV XA, [top_osc_readout/?0A]
 0a9a:    aa 54             MOV DE, XA
@@ -1736,13 +1736,13 @@
 0aae:       03             BR lbl_0ab2
 0aaf:       64             ADDS A, #4
 0ab0:    5a c4             BRCB lbl_0ac4
-0ab2:    a5 09   lbl_0ab2: SET1 [detector_triggered/?09.2]
-0ab4:    b5 08             SET1 [?08.3]
+0ab2:    a5 09   lbl_0ab2: SET1 [detector_top_osc_going_down/?09.2]
+0ab4:    b5 08             SET1 [detector_detecting_top_osc/?08.3]
 0ab6:    a2 0a             MOV XA, [top_osc_readout/?0A]
 0ab8:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 0aba:       70             MOV A, #0
-0abb:    93 1f             MOV [?1F], A
-0abd:    93 46             MOV [?46], A
+0abb:    93 1f             MOV [top_osc_went_up_flag/?1F], A
+0abd:    93 46             MOV [osc_going_up_flags_1/?46], A
 0abf:    93 4d             MOV [osc_count[0]/?4D], A
 0ac1:    93 4e             MOV [osc_count[1]/?4E], A
 0ac3:       ee             RET
@@ -1755,11 +1755,11 @@
 0ace:    8b 4f             MOV HL, #4F
 0ad0:    99 02             INCS @HL
 0ad2:       ee             RET
-0ad3:    94 09             CLR1 [detector_ready/?09.1]
+0ad3:    94 09             CLR1 [detector_initialized/?09.1]
 0ad5:       ee             RET
-0ad6: ab 4b 52   lbl_0ad6: CALL top_osc_above_max
+0ad6: ab 4b 52   lbl_0ad6: CALL top_osc_near_or_above_max
 0ad9:       03             BR lbl_0add
-0ada:    94 09             CLR1 [detector_ready/?09.1]
+0ada:    94 09             CLR1 [detector_initialized/?09.1]
 0adc:       ee             RET
 0add:    8b 4d   lbl_0add: MOV HL, #4D
 0adf:    99 02             INCS @HL
@@ -1770,7 +1770,7 @@
 0ae7:       7f             MOV A, #F
 0ae8:    93 4d             MOV [osc_count[0]/?4D], A
 0aea:    93 4e             MOV [osc_count[1]/?4E], A
-0aec: ab 4b 10   lbl_0aec: CALL sub_0b10
+0aec: ab 4b 10   lbl_0aec: CALL track_top_osc_direction
 0aef:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0af1:    aa 54             MOV DE, XA
 0af3:    a2 6e             MOV XA, [bottom_osc_max/?6E]
@@ -1791,31 +1791,31 @@
 0b09:    aa fc             SUBC XA, DE
 0b0b:       d7             SKT CY
 0b0c:       e0             RETS
-0b0d:    94 09             CLR1 [detector_ready/?09.1]
+0b0d:    94 09             CLR1 [detector_initialized/?09.1]
 0b0f:       ee             RET
 
-    ; FUNCTION sub_0b10
-0b10:    a2 0a   sub_0b10: MOV XA, [top_osc_readout/?0A]
+    ; FUNCTION track_top_osc_direction
+0b10:    a2 0a track_top_osc_direction: MOV XA, [top_osc_readout/?0A]
 0b12:    aa 54             MOV DE, XA
 0b14:    a2 2a             MOV XA, [previous_top_osc_readout/?2A]
 0b16:       e6             CLR1 CY
 0b17:    aa fc             SUBC XA, DE
 0b19:       d7             SKT CY
 0b1a:    5b 30             BRCB lbl_0b30
-0b1c:    86 46             SKF [?46.0]
+0b1c:    86 46             SKF [top_osc_going_up/?46.0]
 0b1e:       0c             BR lbl_0b2b
 0b1f:    8d fc             MOV DE, #FC
 0b21:       e6             CLR1 CY
 0b22:    aa fc             SUBC XA, DE
 0b24:       d7             SKT CY
 0b25:       ee             RET
-0b26:    85 46             SET1 [?46.0]
+0b26:    85 46             SET1 [top_osc_going_up/?46.0]
 0b28:       7f             MOV A, #F
-0b29:    93 1f             MOV [?1F], A
+0b29:    93 1f             MOV [top_osc_went_up_flag/?1F], A
 0b2b:    a2 0a   lbl_0b2b: MOV XA, [top_osc_readout/?0A]
 0b2d:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 0b2f:       ee             RET
-0b30:    87 46   lbl_0b30: SKT [?46.0]
+0b30:    87 46   lbl_0b30: SKT [top_osc_going_up/?46.0]
 0b32:       0a             BR lbl_0b3d
 0b33:    8d 04             MOV DE, #4
 0b35:       e6             CLR1 CY
@@ -1823,28 +1823,28 @@
 0b38:       d6             NOT1 CY
 0b39:       d7             SKT CY
 0b3a:       ee             RET
-0b3b:    84 46             CLR1 [?46.0]
+0b3b:    84 46             CLR1 [top_osc_going_up/?46.0]
 0b3d:    a2 0a   lbl_0b3d: MOV XA, [top_osc_readout/?0A]
 0b3f:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 0b41:       ee             RET
 
-    ; FUNCTION both_oscs_above_max CALLS
-        ; top_osc_above_max,
-        ; bottom_osc_above_max
-0b42: ab 4b 4b both_oscs_above_max: CALL bottom_osc_above_max
+    ; FUNCTION both_oscs_near_or_above_max CALLS
+        ; top_osc_near_or_above_max,
+        ; bottom_osc_near_or_above_max
+0b42: ab 4b 4b both_oscs_near_or_above_max: CALL bottom_osc_near_or_above_max
 0b45:       ee             RET
-0b46: ab 4b 52             CALL top_osc_above_max
+0b46: ab 4b 52             CALL top_osc_near_or_above_max
 0b49:       ee             RET
 0b4a:       e0             RETS
 
-    ; FUNCTION bottom_osc_above_max
-0b4b:    a2 0c bottom_osc_above_max: MOV XA, [bottom_osc_readout/?0C]
+    ; FUNCTION bottom_osc_near_or_above_max
+0b4b:    a2 0c bottom_osc_near_or_above_max: MOV XA, [bottom_osc_readout/?0C]
 0b4d:    aa 54             MOV DE, XA
 0b4f:    a2 6e             MOV XA, [bottom_osc_max/?6E]
 0b51:       06             BR lbl_0b58
 
-    ; FUNCTION top_osc_above_max
-0b52:    a2 0a top_osc_above_max: MOV XA, [top_osc_readout/?0A]
+    ; FUNCTION top_osc_near_or_above_max
+0b52:    a2 0a top_osc_near_or_above_max: MOV XA, [top_osc_readout/?0A]
 0b54:    aa 54             MOV DE, XA
 0b56:    a2 6c             MOV XA, [top_osc_max/?6C]
 0b58:       e6   lbl_0b58: CLR1 CY
@@ -1858,19 +1858,19 @@
 0b62:       e0             RETS
 0b63:       ee             RET
 
-    ; FUNCTION sub_0b64
-0b64:    a3 3c   sub_0b64: MOV A, [?3C]
+    ; FUNCTION decrement_counter
+0b64:    a3 3c decrement_counter: MOV A, [counter_ticks_remaining/?3C]
 0b66:    8b 3d             MOV HL, #3D
 0b68:       a0             OR A, @HL
 0b69:    9a 00             SKE A, #0
 0b6b:       03             BR lbl_0b6f
-0b6c:    a4 4a             CLR1 [?4A.2]
+0b6c:    a4 4a             CLR1 [counter_active/?4A.2]
 0b6e:       ee             RET
-0b6f:    a2 3c   lbl_0b6f: MOV XA, [?3C]
+0b6f:    a2 3c   lbl_0b6f: MOV XA, [counter_ticks_remaining/?3C]
 0b71:       c8             DECS A
 0b72:       01             BR lbl_0b74
 0b73:       c9             DECS X
-0b74:    92 3c   lbl_0b74: MOV [?3C], XA
+0b74:    92 3c   lbl_0b74: MOV [counter_ticks_remaining/?3C], XA
 0b76:       ee             RET
 
     ; FUNCTION update_solenoid_state
@@ -1882,7 +1882,7 @@
 0b7f:    a3 2e             MOV A, [port2_gpio_output/?2E]
 0b81:    99 3e             AND A, #E
 0b83:    93 2e             MOV [port2_gpio_output/?2E], A
-0b85:    94 4a             CLR1 [?4A.1]
+0b85:    94 4a             CLR1 [solenoid_active/?4A.1]
 0b87:       ee             RET
 0b88:    a3 2e   lbl_0b88: MOV A, [port2_gpio_output/?2E]
 0b8a:    99 41             OR A, #1
@@ -1901,25 +1901,25 @@
         ; get_eeprom_symbols
 0b96:    87 2c sync_eeprom_to_bank_1: SKT [port0_readout.0/?2C.0]
 0b98:       ee             RET
-0b99:    86 4b             SKF [?4B.0]
+0b99:    86 4b             SKF [suppress_eeprom_sync/?4B.0]
 0b9b:       ee             RET
-0b9c:    a2 38             MOV XA, [?38]
+0b9c:    a2 38             MOV XA, [eeprom_sync_index/?38]
 0b9e:    9a 00             SKE A, #0
 0ba0:       07             BR lbl_0ba8
-0ba1:    96 4b             SKF [?4B.1]
+0ba1:    96 4b             SKF [sending_ewds/?4B.1]
 0ba3:       04             BR lbl_0ba8
-0ba4:    95 4b             SET1 [?4B.1]
+0ba4:    95 4b             SET1 [sending_ewds/?4B.1]
 0ba6:    5c 98             BRCB send_eeprom_ewds
-0ba8:    94 4b   lbl_0ba8: CLR1 [?4B.1]
+0ba8:    94 4b   lbl_0ba8: CLR1 [sending_ewds/?4B.1]
 0baa: ab 4d 07             CALL get_eeprom_symbols
-0bad:    a2 38             MOV XA, [?38]
+0bad:    a2 38             MOV XA, [eeprom_sync_index/?38]
 0baf:       49             PUSH XA
 0bb0:       64             ADDS A, #4
 0bb1:       02             BR lbl_0bb4
 0bb2:       c1             INCS X
 0bb3:       60             NOP
 0bb4:    99 3c   lbl_0bb4: AND A, #C
-0bb6:    92 38             MOV [?38], XA
+0bb6:    92 38             MOV [eeprom_sync_index/?38], XA
 0bb8:       4a             POP HL
 0bb9:    9d 90             SET1 [MBE]
 0bbb:       4b             PUSH HL
@@ -1928,7 +1928,7 @@
 0bc0: ab 4c a7             CALL send_eeprom_command
 0bc3: ab 4c e9             CALL read_eeprom_reply
 0bc6:       4a             POP HL
-0bc7:    a2 c0             MOV XA, [BSB0/?C0]
+0bc7:    a2 c0             MOV XA, [BSB0/accum_16bit[4]/?C0]
 0bc9:    99 11             SEL MB1
 0bcb:    aa 10             MOV @HL, XA
 0bcd:       c2             INCS L
@@ -1940,21 +1940,21 @@
 0bd7:       ee             RET
 
     ; FUNCTION read_eeprom_to_bank_1 CALLS
-        ; reset_basic_timer,
+        ; reset_watchdog,
         ; read_eeprom_reply,
         ; send_eeprom_command,
         ; get_eeprom_symbols
 0bd8: ab 4d 07 read_eeprom_to_bank_1: CALL get_eeprom_symbols
 0bdb:    9d 90             SET1 [MBE]
 0bdd:    8b 00             MOV HL, #0
-0bdf: ab 46 b7   lbl_0bdf: CALL reset_basic_timer
+0bdf: ab 46 b7   lbl_0bdf: CALL reset_watchdog
 0be2:       4b             PUSH HL
 0be3:    99 1f             SEL MBF
 0be5:    9a 69             MOV X, #6
 0be7: ab 4c a7             CALL send_eeprom_command
 0bea: ab 4c e9             CALL read_eeprom_reply
 0bed:       4a             POP HL
-0bee:    a2 c0             MOV XA, [BSB0/?C0]
+0bee:    a2 c0             MOV XA, [BSB0/accum_16bit[4]/?C0]
 0bf0:    99 11             SEL MB1
 0bf2:    aa 10             MOV @HL, XA
 0bf4:       c2             INCS L
@@ -1971,14 +1971,14 @@
 0c05:       ee             RET
 
     ; FUNCTION validate_eeprom_bank_1 CALLS
-        ; validate_eeprom_single_load,
-        ; reset_basic_timer,
+        ; validate_eeprom_four_reads,
+        ; reset_watchdog,
         ; get_eeprom_symbols
 0c06: ab 4d 07 validate_eeprom_bank_1: CALL get_eeprom_symbols
 0c09:    9d 90             SET1 [MBE]
 0c0b:    8b 00             MOV HL, #0
-0c0d: ab 46 b7   lbl_0c0d: CALL reset_basic_timer
-0c10: ab 4c 20             CALL validate_eeprom_single_load
+0c0d: ab 46 b7   lbl_0c0d: CALL reset_watchdog
+0c10: ab 4c 20             CALL validate_eeprom_four_reads
 0c13:       d6             NOT1 CY
 0c14:       d7             SKT CY
 0c15:    5c 4f             BRCB lbl_0c4f
@@ -1989,19 +1989,19 @@
 0c1b: ab 4d 07             CALL get_eeprom_symbols ; DEAD
 0c1e:    9d 90             SET1 [MBE] ; DEAD
 
-    ; FUNCTION validate_eeprom_single_load CALLS
-        ; validate_eeprom_single_load,
+    ; FUNCTION validate_eeprom_four_reads CALLS
+        ; validate_eeprom_four_reads,
         ; read_eeprom_reply,
         ; assert_eeprom_cs,
         ; send_eeprom_command
-0c20:       4b validate_eeprom_single_load: PUSH HL
+0c20:       4b validate_eeprom_four_reads: PUSH HL
 0c21:    99 1f             SEL MBF
 0c23: ab 4d 1c             CALL assert_eeprom_cs
 0c26:    9a 69             MOV X, #6
 0c28: ab 4c a7             CALL send_eeprom_command
 0c2b: ab 4c e9             CALL read_eeprom_reply
 0c2e:       4a             POP HL
-0c2f:    a2 c0             MOV XA, [BSB0/?C0]
+0c2f:    a2 c0             MOV XA, [BSB0/accum_16bit[4]/?C0]
 0c31:    99 11             SEL MB1
 0c33:       80             SKE A, @HL
 0c34:    5c 4f             BRCB lbl_0c4f
@@ -2020,20 +2020,20 @@
 0c48:       80             SKE A, @HL
 0c49:       05             BR lbl_0c4f
 0c4a:       c2             INCS L
-0c4b:    5c 20             BRCB validate_eeprom_single_load
+0c4b:    5c 20             BRCB validate_eeprom_four_reads
 0c4d:       e6             CLR1 CY
 0c4e:       ee             RET
 0c4f:       e7   lbl_0c4f: SET1 CY
 0c50:       ee             RET
 
     ; FUNCTION write_eeprom_from_bank_1 CALLS
-        ; reset_basic_timer,
+        ; reset_watchdog,
         ; write_eeprom_four_writes,
         ; get_eeprom_symbols
 0c51: ab 4d 07 write_eeprom_from_bank_1: CALL get_eeprom_symbols
 0c54:    9d 90             SET1 [MBE]
 0c56:    8b 00             MOV HL, #0
-0c58: ab 46 b7   lbl_0c58: CALL reset_basic_timer
+0c58: ab 46 b7   lbl_0c58: CALL reset_watchdog
 0c5b: ab 4c 66             CALL write_eeprom_four_writes
 0c5e:       c3             INCS H
 0c5f:       f8             BR lbl_0c58
@@ -2056,7 +2056,7 @@
 0c73:    99 11             SEL MB1
 0c75:    aa 18             MOV XA, @HL
 0c77:    99 1f             SEL MBF
-0c79:    92 c0             MOV [BSB0/?C0], XA
+0c79:    92 c0             MOV [BSB0/accum_16bit[4]/?C0], XA
 0c7b:       c2             INCS L
 0c7c:       c2             INCS L
 0c7d:    99 11             SEL MB1
@@ -2197,38 +2197,38 @@
 0d40:    a2 da             MOV XA, [SA/?DA]
 0d42:       ee             RET
 
-    ; FUNCTION really_get_encoder_readout CALLS
-        ; load_table_index,
-        ; process_magic_lower,
-        ; process_magic_upper,
+    ; FUNCTION build_new_config CALLS
+        ; load_coin_data_start,
+        ; build_config_lower,
+        ; build_config_upper,
         ; get_encoder_readout,
-        ; do_bank1_magic,
-        ; reset_basic_timer,
+        ; accumulate_samples,
+        ; reset_watchdog,
         ; read_eeprom_to_bank_1,
-        ; sub_04fc
-0d43: ab 46 e9 really_get_encoder_readout: CALL get_encoder_readout
+        ; copy_new_config
+0d43: ab 46 e9 build_new_config: CALL get_encoder_readout
 0d46:       ee             RET
 0d47:    9a 09             MOV X, #0
 0d49:    aa c8             ADDS XA, XA
 0d4b:    99 73             MOV H, A
 0d4d:    9a 0a             MOV L, #0
 0d4f:       4b             PUSH HL
-0d50: ab 4d 95             CALL do_bank1_magic
-0d53: ab 46 b7             CALL reset_basic_timer
-0d56: ab 50 80             CALL load_table_index
-0d59: ab 46 b7             CALL reset_basic_timer
-0d5c: ab 4e 21             CALL process_magic_lower
-0d5f: ab 46 b7             CALL reset_basic_timer
+0d50: ab 4d 95             CALL accumulate_samples
+0d53: ab 46 b7             CALL reset_watchdog
+0d56: ab 50 80             CALL load_coin_data_start
+0d59: ab 46 b7             CALL reset_watchdog
+0d5c: ab 4e 21             CALL build_config_lower
+0d5f: ab 46 b7             CALL reset_watchdog
 0d62: ab 4b d8             CALL read_eeprom_to_bank_1
-0d65: ab 46 b7             CALL reset_basic_timer
+0d65: ab 46 b7             CALL reset_watchdog
 0d68:       4a             POP HL
 0d69:       4b             PUSH HL
-0d6a: ab 44 fc             CALL sub_04fc
-0d6d: ab 4e 62             CALL process_magic_upper
-0d70: ab 46 b7             CALL reset_basic_timer
+0d6a: ab 44 fc             CALL copy_new_config
+0d6d: ab 4e 62             CALL build_config_upper
+0d70: ab 46 b7             CALL reset_watchdog
 0d73:       4a             POP HL
 0d74:       c3             INCS H
-0d75: ab 44 fc             CALL sub_04fc
+0d75: ab 44 fc             CALL copy_new_config
 0d78:    9d 90             SET1 [MBE]
 0d7a:    99 11             SEL MB1
 0d7c:    a2 f0             IN XA, PORT0
@@ -2245,32 +2245,32 @@
 0d92:    92 f2             OUT PORT2, XA
 0d94:       e0             RETS
 
-    ; FUNCTION do_bank1_magic CALLS
+    ; FUNCTION accumulate_samples CALLS
         ; read_bank1,
         ; add_16bit
-0d95:    9d 90 do_bank1_magic: SET1 [MBE]
+0d95:    9d 90 accumulate_samples: SET1 [MBE]
 0d97:    99 10             SEL MB0
 0d99:    89 00             MOV XA, #0
-0d9b:    92 b0             MOV [PSW/?B0], XA
+0d9b:    92 b0             MOV [PSW/accum_16bit[0]/?B0], XA
 0d9d:    92 b2             MOV [IPS/?B2], XA
-0d9f:    92 b4             MOV [IM0/?B4], XA
+0d9f:    92 b4             MOV [IM0/accum_16bit[1]/?B4], XA
 0da1:    92 b6             MOV [IM2/?B6], XA
-0da3:    92 b8             MOV [INTA/?B8], XA
+0da3:    92 b8             MOV [INTA/accum_16bit[2]/?B8], XA
 0da5:    92 ba             MOV [INTC/?BA], XA
-0da7:    92 bc             MOV [INTE/?BC], XA
+0da7:    92 bc             MOV [INTE/accum_16bit[3]/?BC], XA
 0da9:    92 be             MOV [INTG/?BE], XA
-0dab:    92 c0             MOV [BSB0/?C0], XA
+0dab:    92 c0             MOV [BSB0/accum_16bit[4]/?C0], XA
 0dad:    92 c2             MOV [BSB2/?C2], XA
-0daf:    92 c4             MOV [?C4], XA
+0daf:    92 c4             MOV [accum_16bit[5]/?C4], XA
 0db1:    92 c6             MOV [?C6], XA
-0db3:    92 6a             MOV [buf1_16bit[2]/?6A], XA
+0db3:    92 6a             MOV [temps[6]/?6A], XA
 0db5:    9a ff             MOV B, #F
 0db7:    8b 00             MOV HL, #0
 0db9:       4f   lbl_0db9: PUSH BC
 0dba:    9a 0a             MOV L, #0
 0dbc:       4b             PUSH HL
 0dbd: ab 4e f8             CALL read_bank1
-0dc0:    92 68             MOV [buf1_16bit[0]/?68], XA
+0dc0:    92 68             MOV [temps[4]/?68], XA
 0dc2:    8b b0             MOV HL, #B0
 0dc4:    8d 68             MOV DE, #68
 0dc6: ab 4f 48             CALL add_16bit
@@ -2279,7 +2279,7 @@
 0dcb:       c2             INCS L
 0dcc:       4b             PUSH HL
 0dcd: ab 4e f8             CALL read_bank1
-0dd0:    92 68             MOV [buf1_16bit[0]/?68], XA
+0dd0:    92 68             MOV [temps[4]/?68], XA
 0dd2:    8b b4             MOV HL, #B4
 0dd4:    8d 68             MOV DE, #68
 0dd6: ab 4f 48             CALL add_16bit
@@ -2288,7 +2288,7 @@
 0ddb:       c2             INCS L
 0ddc:       4b             PUSH HL
 0ddd: ab 4e f8             CALL read_bank1
-0de0:    92 68             MOV [buf1_16bit[0]/?68], XA
+0de0:    92 68             MOV [temps[4]/?68], XA
 0de2:    8b b8             MOV HL, #B8
 0de4:    8d 68             MOV DE, #68
 0de6: ab 4f 48             CALL add_16bit
@@ -2297,7 +2297,7 @@
 0deb:       c2             INCS L
 0dec:       4b             PUSH HL
 0ded: ab 4e f8             CALL read_bank1
-0df0:    92 68             MOV [buf1_16bit[0]/?68], XA
+0df0:    92 68             MOV [temps[4]/?68], XA
 0df2:    8b bc             MOV HL, #BC
 0df4:    8d 68             MOV DE, #68
 0df6: ab 4f 48             CALL add_16bit
@@ -2306,7 +2306,7 @@
 0dfb:       c2             INCS L
 0dfc:       4b             PUSH HL
 0dfd: ab 4e f8             CALL read_bank1
-0e00:    92 68             MOV [buf1_16bit[0]/?68], XA
+0e00:    92 68             MOV [temps[4]/?68], XA
 0e02:    8b c0             MOV HL, #C0
 0e04:    8d 68             MOV DE, #68
 0e06: ab 4f 48             CALL add_16bit
@@ -2315,7 +2315,7 @@
 0e0b:       c2             INCS L
 0e0c:       4b             PUSH HL
 0e0d: ab 4e f8             CALL read_bank1
-0e10:    92 68             MOV [buf1_16bit[0]/?68], XA
+0e10:    92 68             MOV [temps[4]/?68], XA
 0e12:    8b c4             MOV HL, #C4
 0e14:    8d 68             MOV DE, #68
 0e16: ab 4f 48             CALL add_16bit
@@ -2327,125 +2327,125 @@
 0e1e:    5d b9             BRCB lbl_0db9
 0e20:       ee             RET
 
-    ; FUNCTION process_magic_lower CALLS
-        ; magic_table_subtract,
-        ; magic_table_add,
-        ; load_table
-0e21:    9d 90 process_magic_lower: SET1 [MBE]
+    ; FUNCTION build_config_lower CALLS
+        ; config_add_downwards_uncertainty,
+        ; config_add_upwards_uncertainty,
+        ; load_coin_data_next
+0e21:    9d 90 build_config_lower: SET1 [MBE]
 0e23:    99 10             SEL MB0
-0e25: ab 50 94             CALL load_table
-0e28:    92 50             MOV [?50], XA
-0e2a: ab 50 94             CALL load_table
-0e2d:    92 52             MOV [?52], XA
-0e2f: ab 50 94             CALL load_table
-0e32:    92 54             MOV [?54], XA
+0e25: ab 50 94             CALL load_coin_data_next
+0e28:    92 50             MOV [config_staging_buffer[0]/?50], XA
+0e2a: ab 50 94             CALL load_coin_data_next
+0e2d:    92 52             MOV [config_staging_buffer[2]/?52], XA
+0e2f: ab 50 94             CALL load_coin_data_next
+0e32:    92 54             MOV [config_staging_buffer[4]/?54], XA
 0e34:    8b b0             MOV HL, #B0
 0e36:    8d 68             MOV DE, #68
-0e38: ab 4e aa             CALL magic_table_add
-0e3b:    92 56             MOV [?56], XA
+0e38: ab 4e aa             CALL config_add_upwards_uncertainty
+0e3b:    92 56             MOV [config_staging_buffer[6]/?56], XA
 0e3d:    8b b0             MOV HL, #B0
 0e3f:    8d 68             MOV DE, #68
-0e41: ab 4e d1             CALL magic_table_subtract
-0e44:    92 58             MOV [?58], XA
+0e41: ab 4e d1             CALL config_add_downwards_uncertainty
+0e44:    92 58             MOV [config_staging_buffer[8]/?58], XA
 0e46:    8b b4             MOV HL, #B4
 0e48:    8d 68             MOV DE, #68
-0e4a: ab 4e aa             CALL magic_table_add
-0e4d:    92 5a             MOV [?5A], XA
+0e4a: ab 4e aa             CALL config_add_upwards_uncertainty
+0e4d:    92 5a             MOV [config_staging_buffer[A]/?5A], XA
 0e4f:    8b b4             MOV HL, #B4
 0e51:    8d 68             MOV DE, #68
-0e53: ab 4e d1             CALL magic_table_subtract
-0e56:    92 5c             MOV [?5C], XA
+0e53: ab 4e d1             CALL config_add_downwards_uncertainty
+0e56:    92 5c             MOV [config_staging_buffer[C]/?5C], XA
 0e58:    8b b8             MOV HL, #B8
 0e5a:    8d 68             MOV DE, #68
-0e5c: ab 4e aa             CALL magic_table_add
-0e5f:    92 5e             MOV [?5E], XA
+0e5c: ab 4e aa             CALL config_add_upwards_uncertainty
+0e5f:    92 5e             MOV [config_staging_buffer[E]/?5E], XA
 0e61:       ee             RET
 
-    ; FUNCTION process_magic_upper CALLS
-        ; magic_table_subtract,
-        ; magic_table_add
-0e62:    9d 90 process_magic_upper: SET1 [MBE]
+    ; FUNCTION build_config_upper CALLS
+        ; config_add_downwards_uncertainty,
+        ; config_add_upwards_uncertainty
+0e62:    9d 90 build_config_upper: SET1 [MBE]
 0e64:    99 10             SEL MB0
 0e66:    8b b8             MOV HL, #B8
 0e68:    8d 68             MOV DE, #68
-0e6a: ab 4e d1             CALL magic_table_subtract
-0e6d:    92 50             MOV [?50], XA
+0e6a: ab 4e d1             CALL config_add_downwards_uncertainty
+0e6d:    92 50             MOV [config_staging_buffer[0]/?50], XA
 0e6f:    8b bc             MOV HL, #BC
 0e71:    8d 68             MOV DE, #68
-0e73: ab 4e aa             CALL magic_table_add
-0e76:    92 52             MOV [?52], XA
+0e73: ab 4e aa             CALL config_add_upwards_uncertainty
+0e76:    92 52             MOV [config_staging_buffer[2]/?52], XA
 0e78:    8b bc             MOV HL, #BC
 0e7a:    8d 68             MOV DE, #68
-0e7c: ab 4e d1             CALL magic_table_subtract
-0e7f:    92 54             MOV [?54], XA
+0e7c: ab 4e d1             CALL config_add_downwards_uncertainty
+0e7f:    92 54             MOV [config_staging_buffer[4]/?54], XA
 0e81:    8b c0             MOV HL, #C0
 0e83:    8d 68             MOV DE, #68
-0e85: ab 4e aa             CALL magic_table_add
-0e88:    92 56             MOV [?56], XA
+0e85: ab 4e aa             CALL config_add_upwards_uncertainty
+0e88:    92 56             MOV [config_staging_buffer[6]/?56], XA
 0e8a:    8b c0             MOV HL, #C0
 0e8c:    8d 68             MOV DE, #68
-0e8e: ab 4e d1             CALL magic_table_subtract
-0e91:    92 58             MOV [?58], XA
+0e8e: ab 4e d1             CALL config_add_downwards_uncertainty
+0e91:    92 58             MOV [config_staging_buffer[8]/?58], XA
 0e93:    8b c4             MOV HL, #C4
 0e95:    8d 68             MOV DE, #68
-0e97: ab 4e aa             CALL magic_table_add
-0e9a:    92 5a             MOV [?5A], XA
+0e97: ab 4e aa             CALL config_add_upwards_uncertainty
+0e9a:    92 5a             MOV [config_staging_buffer[A]/?5A], XA
 0e9c:    8b c4             MOV HL, #C4
 0e9e:    8d 68             MOV DE, #68
-0ea0: ab 4e d1             CALL magic_table_subtract
-0ea3:    92 5c             MOV [?5C], XA
+0ea0: ab 4e d1             CALL config_add_downwards_uncertainty
+0ea3:    92 5c             MOV [config_staging_buffer[C]/?5C], XA
 0ea5:    89 ff             MOV XA, #FF
-0ea7:    92 5e             MOV [?5E], XA
+0ea7:    92 5e             MOV [config_staging_buffer[E]/?5E], XA
 0ea9:       ee             RET
 
-    ; FUNCTION magic_table_add CALLS
+    ; FUNCTION config_add_upwards_uncertainty CALLS
         ; add_16bit,
-        ; load_table,
+        ; load_coin_data_next,
         ; copy_16bit
-0eaa: ab 4f 06 magic_table_add: CALL copy_16bit
-0ead: ab 50 94             CALL load_table
-0eb0:    93 65             MOV [buf0_16bit[1]/?65], A
+0eaa: ab 4f 06 config_add_upwards_uncertainty: CALL copy_16bit
+0ead: ab 50 94             CALL load_coin_data_next
+0eb0:    93 65             MOV [temps[1]/?65], A
 0eb2:    99 79             MOV A, X
-0eb4:    93 66             MOV [buf0_16bit[2]/?66], A
+0eb4:    93 66             MOV [temps[2]/?66], A
 0eb6:       70             MOV A, #0
-0eb7:    93 64             MOV [buf0_16bit[0]/?64], A
-0eb9:    93 67             MOV [buf0_16bit[3]/?67], A
+0eb7:    93 64             MOV [temps[0]/?64], A
+0eb9:    93 67             MOV [temps[3]/?67], A
 0ebb:    8b 68             MOV HL, #68
 0ebd:    8d 64             MOV DE, #64
 0ebf: ab 4f 48             CALL add_16bit
-0ec2:    a3 6b             MOV A, [buf1_16bit[3]/?6B]
+0ec2:    a3 6b             MOV A, [temps[7]/?6B]
 0ec4:    9a 00             SKE A, #0
 0ec6:       07             BR lbl_0ece
-0ec7:    a3 6a             MOV A, [buf1_16bit[2]/?6A]
+0ec7:    a3 6a             MOV A, [temps[6]/?6A]
 0ec9:    99 71             MOV X, A
-0ecb:    a3 69             MOV A, [buf1_16bit[1]/?69]
+0ecb:    a3 69             MOV A, [temps[5]/?69]
 0ecd:       ee             RET
 0ece:    89 ff   lbl_0ece: MOV XA, #FF
 0ed0:       ee             RET
 
-    ; FUNCTION magic_table_subtract CALLS
-        ; load_table,
+    ; FUNCTION config_add_downwards_uncertainty CALLS
+        ; load_coin_data_next,
         ; copy_16bit,
         ; subtract_16bit
-0ed1: ab 4f 06 magic_table_subtract: CALL copy_16bit
-0ed4: ab 50 94             CALL load_table
-0ed7:    93 65             MOV [buf0_16bit[1]/?65], A
+0ed1: ab 4f 06 config_add_downwards_uncertainty: CALL copy_16bit
+0ed4: ab 50 94             CALL load_coin_data_next
+0ed7:    93 65             MOV [temps[1]/?65], A
 0ed9:    99 79             MOV A, X
-0edb:    93 66             MOV [buf0_16bit[2]/?66], A
+0edb:    93 66             MOV [temps[2]/?66], A
 0edd:       70             MOV A, #0
-0ede:    93 64             MOV [buf0_16bit[0]/?64], A
-0ee0:    93 67             MOV [buf0_16bit[3]/?67], A
+0ede:    93 64             MOV [temps[0]/?64], A
+0ee0:    93 67             MOV [temps[3]/?67], A
 0ee2:    8b 68             MOV HL, #68
 0ee4:    8d 64             MOV DE, #64
 0ee6: ab 4f 57             CALL subtract_16bit
-0ee9:    a3 6b             MOV A, [buf1_16bit[3]/?6B]
+0ee9:    a3 6b             MOV A, [temps[7]/?6B]
 0eeb:    9a f0             SKE A, #F
 0eed:       03             BR lbl_0ef1
 0eee:    89 00             MOV XA, #0
 0ef0:       ee             RET
-0ef1:    a3 6a   lbl_0ef1: MOV A, [buf1_16bit[2]/?6A]
+0ef1:    a3 6a   lbl_0ef1: MOV A, [temps[6]/?6A]
 0ef3:    99 71             MOV X, A
-0ef5:    a3 69             MOV A, [buf1_16bit[1]/?69]
+0ef5:    a3 69             MOV A, [temps[5]/?69]
 0ef7:       ee             RET
 
     ; FUNCTION read_bank1
@@ -2472,8 +2472,8 @@
 0f0f:       f8             BR lbl_0f08
 0f10:       ee             RET
 0f11:    89 00             MOV XA, #0 ; DEAD
-0f13:    92 64             MOV [buf0_16bit[0]/?64], XA ; DEAD
-0f15:    92 66             MOV [buf0_16bit[2]/?66], XA ; DEAD
+0f13:    92 64             MOV [temps[0]/?64], XA ; DEAD
+0f15:    92 66             MOV [temps[2]/?66], XA ; DEAD
 0f17:    9a 3e             MOV C, #3 ; DEAD
 
     ; DEAD BLOCK lbl_0f19
@@ -2714,7 +2714,7 @@
 
     ; SECTION .data
 
-1000:       01 data_table_1000: .byte #1
+1000:       01  coin_data: .byte #1
 1001:       00             .byte #0
 1002:       01             .byte #1
 1003:       08             .byte #8
@@ -2834,7 +2834,7 @@
 1075:       00             .byte #0
 1076:       00             .byte #0
 1077:       00             .byte #0
-1078:       00 data_indices_1078: .byte #0
+1078:       00 coin_data_indices: .byte #0
 1079:       0f             .byte #F
 107a:       1e             .byte #1E
 107b:       2d             .byte #2D
@@ -2846,9 +2846,9 @@
     ; SECTION .text2
 
 
-    ; FUNCTION load_table_index CALLS
+    ; FUNCTION load_coin_data_start CALLS
         ; get_encoder_readout
-1080: ab 46 e9 load_table_index: CALL get_encoder_readout
+1080: ab 46 e9 load_coin_data_start: CALL get_encoder_readout
 1083:       60             NOP
 1084:    9a 09             MOV X, #0
 1086:    8d 78             MOV DE, #78
@@ -2858,16 +2858,16 @@
 108c:    8d 00             MOV DE, #0
 108e:       e6             CLR1 CY
 108f:    aa dc             ADDC XA, DE
-1091:    92 60             MOV [?60], XA
+1091:    92 60             MOV [total_cost/?60], XA
 1093:       ee             RET
 
-    ; FUNCTION load_table CALLS
+    ; FUNCTION load_coin_data_next CALLS
         ; increment_xa
-1094:    a2 60 load_table: MOV XA, [?60]
+1094:    a2 60 load_coin_data_next: MOV XA, [total_cost/?60]
 1096:       d0             MOVT XA, @PCXA
-1097:    b2 60             XCH XA, [?60]
+1097:    b2 60             XCH XA, [total_cost/?60]
 1099: ab 4f 6c             CALL increment_xa
-109c:    b2 60             XCH XA, [?60]
+109c:    b2 60             XCH XA, [total_cost/?60]
 109e:       ee             RET
 
     ; FUNCTION get_7seg_encoding
