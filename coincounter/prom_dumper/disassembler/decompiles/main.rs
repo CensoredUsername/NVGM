@@ -548,8 +548,8 @@ fn wait_for_coin_detected() -> skip {
 
 // returns true if XA is above the value at 1HL, and below the value at 1HL + 2
 fn is_sample_between_config_values(HL, XA) -> skip {
-    if (XA > read_from_bank_1(HL)) {
-        if (read_from_bank_1(HL + 2) > XA) {
+    if (XA <= read_from_bank_1(HL)) {
+        if (XA >= read_from_bank_1(HL + 2)) {
             return true
         }
     }

@@ -1387,7 +1387,7 @@
 087d:    92 2a             MOV [previous_top_osc_readout/?2A], XA
 087f:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0881:    92 70             MOV [last_bottom_osc_rough/?70], XA
-0883:    92 72             MOV [last_bottom_osc_coarse/?72], XA
+0883:    92 72             MOV [last_bottom_osc_fine/?72], XA
 0885:    a2 6c             MOV XA, [top_osc_max/?6C]
 0887:    92 12             MOV [coin_sample_2/?12], XA
 0889:    a2 6e             MOV XA, [bottom_osc_max/?6E]
@@ -1554,7 +1554,7 @@
     ; FUNCTION track_bottom_osc_direction_coarse
 099e:    a2 0c track_bottom_osc_direction_coarse: MOV XA, [bottom_osc_readout/?0C]
 09a0:    aa 54             MOV DE, XA
-09a2:    a2 22             MOV XA, [last_bottom_osc_fine/?22]
+09a2:    a2 22             MOV XA, [last_bottom_osc_coarse/?22]
 09a4:       e6             CLR1 CY
 09a5:    aa fc             SUBC XA, DE
 09a7:       d7             SKT CY
@@ -1571,7 +1571,7 @@
 09b8:    a2 6c             MOV XA, [top_osc_max/?6C]
 09ba:    92 12             MOV [coin_sample_2/?12], XA
 09bc:    a2 0c   lbl_09bc: MOV XA, [bottom_osc_readout/?0C]
-09be:    92 22             MOV [last_bottom_osc_fine/?22], XA
+09be:    92 22             MOV [last_bottom_osc_coarse/?22], XA
 09c0:       ee             RET
 09c1:    a7 46   lbl_09c1: SKT [bot_osc_going_up_coarse/?46.2]
 09c3:       0c             BR lbl_09d0
@@ -1584,7 +1584,7 @@
 09cc:    a4 46             CLR1 [bot_osc_going_up_coarse/?46.2]
 09ce:    94 46             CLR1 [bot_osc_going_up_coarse_copy/?46.1]
 09d0:    a2 0c   lbl_09d0: MOV XA, [bottom_osc_readout/?0C]
-09d2:    92 22             MOV [last_bottom_osc_fine/?22], XA
+09d2:    92 22             MOV [last_bottom_osc_coarse/?22], XA
 09d4:       ee             RET
 09d5:    a2 0a             MOV XA, [top_osc_readout/?0A] ; DEAD
 09d7:    aa 54             MOV DE, XA ; DEAD
@@ -1628,14 +1628,14 @@
     ; FUNCTION track_bottom_osc_direction_fine
 0a08:    a2 0c track_bottom_osc_direction_fine: MOV XA, [bottom_osc_readout/?0C]
 0a0a:    aa 54             MOV DE, XA
-0a0c:    a2 72             MOV XA, [last_bottom_osc_coarse/?72]
+0a0c:    a2 72             MOV XA, [last_bottom_osc_fine/?72]
 0a0e:       e6             CLR1 CY
 0a0f:    aa fc             SUBC XA, DE
 0a11:       d7             SKT CY
 0a12:    5a 30             BRCB lbl_0a30
 0a14:    a6 47             SKF [bot_osc_going_up_fine/?47.2]
 0a16:    5a 2b             BRCB lbl_0a2b
-0a18:    a2 72             MOV XA, [last_bottom_osc_coarse/?72]
+0a18:    a2 72             MOV XA, [last_bottom_osc_fine/?72]
 0a1a:    aa 54             MOV DE, XA
 0a1c:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0a1e:       e6             CLR1 CY
@@ -1648,13 +1648,13 @@
 0a28:       ee             RET
 0a29:    a5 47             SET1 [bot_osc_going_up_fine/?47.2]
 0a2b:    a2 0c   lbl_0a2b: MOV XA, [bottom_osc_readout/?0C]
-0a2d:    92 72             MOV [last_bottom_osc_coarse/?72], XA
+0a2d:    92 72             MOV [last_bottom_osc_fine/?72], XA
 0a2f:       ee             RET
 0a30:    a7 47   lbl_0a30: SKT [bot_osc_going_up_fine/?47.2]
 0a32:    5a 4a             BRCB lbl_0a4a
 0a34:    a2 0c             MOV XA, [bottom_osc_readout/?0C]
 0a36:    aa 54             MOV DE, XA
-0a38:    a2 72             MOV XA, [last_bottom_osc_coarse/?72]
+0a38:    a2 72             MOV XA, [last_bottom_osc_fine/?72]
 0a3a:       e6             CLR1 CY
 0a3b:    aa fc             SUBC XA, DE
 0a3d:    8d 02             MOV DE, #2
@@ -1667,7 +1667,7 @@
 0a47:       7f             MOV A, #F
 0a48:    93 1e             MOV [bottom_osc_went_down_flag/?1E], A
 0a4a:    a2 0c   lbl_0a4a: MOV XA, [bottom_osc_readout/?0C]
-0a4c:    92 72             MOV [last_bottom_osc_coarse/?72], XA
+0a4c:    92 72             MOV [last_bottom_osc_fine/?72], XA
 0a4e:       ee             RET
 
     ; FUNCTION increment_detection_tick_count CALLS

@@ -51,7 +51,7 @@ fn update_detector() {
             }
             // coin detection finished, calculate final values and return
             if both_oscs_near_or_above_max() {
-                // sample 4 is the saturated value of sample_2 - sample_1
+                // sample 4 is the saturated value of sample_1 - sample_2
                 if coin_sample_2 > coin_sample_1 {
                     coin_sample_4 = 0
                 } else {
@@ -137,7 +137,7 @@ fn update_detector() {
             previous_top_osc_readout = top_osc_readout
 
             last_bottom_osc_rough = bottom_osc_readout
-            last_bottom_osc_coarse = bottom_osc_readout
+            last_bottom_osc_fine = bottom_osc_readout
 
             coin_sample_2 = top_osc_max
             coin_sample_3 = bottom_osc_max
@@ -172,6 +172,7 @@ fn update_detector() {
 }
 
 // sets 46.1 and 46.2 based on bottom_osc_readout being larger or smaller than last_bottom_osc_coarse
+// bug: last_bottom_osc_coarse is never properly initialized..
 // with some debouncing
 fn track_bottom_osc_direction_coarse() {
     if (bottom_osc_readout > last_bottom_osc_coarse) {

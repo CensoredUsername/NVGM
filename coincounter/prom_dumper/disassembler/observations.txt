@@ -1,0 +1,76 @@
+observations
+
+on the debug connector the following are routed out:
+
+PORT0.0    (type B   schmitt-trigger input w/ hysteresis)
+PORT0.2/SO (type F-B push-pull between Vdd and Vss)
+PORT1.1    (type B-C schmitt-trigger input w/ hysteresis & pullup)
+
+PORT0.0 is used to select between normal / debugging mode. It defaults to normal (high)
+PORT1.1 is used to select between learning / debugging mode. It defaults to learning (high)
+encoder 1 is used in debugging mode to select between the different debugging functionalities:
+0: waits for a coin to be detected. When it passes through the machinery, print all analysis data on it to serial
+1: reads out the contents of the eeprom over serial
+2: waits for a coin to be detected. writes the results to the eeprom at address 0xE0
+3: reads the content of bank 0 (basically all RAM + registers)
+
+when using debugging mode, the state of encoder 1 and port1.1 should be set before is triggered.
+
+outside debugging mode, encoder 1 determines the 10's of the amount of money units necessary to trigger the mechanism, encoder 2 determines the 100's
+
+when learning mode is active, the relay is disabled, so coins will always be given back.
+
+the eeprom can be divided in 8 sections, each 0x10 bytes in size.
+Learning mode always writes to section 3 (0x20)
+
+The first 7 sections are valid sections to contain coin configuration data, the last one can contain some debugging data:
+
+section 1 - 7 format is as follows (bytewise)
+
+0: value of coin in BCD, divided by 10. Setting it to 0xFF disables this entry
+1: unused
+2: flags. bits have the following behaviour
+    0: ensure amount of ticks spent while detecting this coin is above 0x2C
+    1: ensure the bottom_osc_went_down_flag was set
+    2: ensure the top_osc_went_up_flag wasn't set (indicates top osc didn't go up before bot osc started falling)
+    3-6: unused
+    7: if debug mode is not active, requires that a fast oscillating signal is present on PORT1.0. This pin is unused.
+3: max value for sample 1
+4: min value for sample 1
+5: max value for sample 2
+6: min value for sample 2
+7: max value for sample 3
+8: min value for sample 3
+9: max value for sample 4
+A: min value for sample 4
+B: max value for sample 5
+C: min value for sample 5
+D: max value for sample 6
+E: min value for sample 6
+F: always set to 0xFF
+
+section 8 format:
+0: stored coin sample 1
+1: stored coin sample 2
+2: stored coin sample 3
+3: stored coin sample 4
+4: stored coin sample 5
+5: stored coin sample 6
+6-7: unused
+8: top_osc_max while recording the last learned config
+9: bottom_osc_max while recording the last learned config
+A: top_osc_max from the second to last config
+B: bottom_osc_max from the second to last config
+C - F: unused
+
+what do the samples seem to represent
+sample 1: top osc value after bottom osc has dropped 0xC below max
+sample 2: minimum value reached by the top oscillator while the bottom oscillator is going up
+sample 3: lowest value reached by the bottom oscillator
+sample 4: sample 1 - sample 2, clamped to 0 or higher
+sample 5: maximum value reached by the top oscillator while the bottom oscillator is going down
+sample 6: sample 5 - sample 1, clamped to 0 or higher
+
+bitflag 0: amount of ticks between the bottom osc starting to go down and both oscillators stabilizing again is above 0x2C
+bitflag 1: bottom osc doesn't go down after the initial downturn
+bitflag 2: top osc didn't go up before bottom osc went down

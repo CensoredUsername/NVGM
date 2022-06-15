@@ -381,19 +381,20 @@ def get_known_datalocs():
     locs[0x016]= "coin_sample_4"
     locs[0x018]= "coin_sample_5"
     locs[0x01a]= "coin_sample_6"
+
     locs[0x01c] = "increment_detection_tick_count"
     locs[0x01e] = "bottom_osc_went_down_flag"
     locs[0x01f] = "top_osc_went_up_flag"
-
     locs[0x20]= "top_osc_max_2"
-
-    locs[0x22]= "last_bottom_osc_fine"
-
+    locs[0x22]= "last_bottom_osc_coarse"
     locs[0x24]= "unused_24"
 
-    locs[0x28]= "coin_sample_ptr"
+    # 0x26 is used instead as a local in is_sample_between_config_values
 
+    locs[0x28]= "coin_sample_ptr"
     locs[0x02a]= "previous_top_osc_readout"
+
+    # 0x2c is confused
 
     locs[0x02e]= "port2_gpio_output"
     locs[0x02f]= "port3_gpio_output"
@@ -465,7 +466,7 @@ def get_known_datalocs():
     locs[0x6e]= "bottom_osc_max"
 
     locs[0x70]= "last_bottom_osc_rough"
-    locs[0x72]= "last_bottom_osc_coarse"
+    locs[0x72]= "last_bottom_osc_fine"
     locs[0x74]= "unused_74"
 
     # alternate registers banks are not used
