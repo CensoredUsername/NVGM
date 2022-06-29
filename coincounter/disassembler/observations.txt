@@ -9,16 +9,18 @@ PORT1.1    (type B-C schmitt-trigger input w/ hysteresis & pullup)
 PORT0.0 is used to select between normal / debugging mode. It defaults to normal (high)
 PORT1.1 is used to select between learning / debugging mode. It defaults to learning (high)
 encoder 1 is used in debugging mode to select between the different debugging functionalities:
-0: waits for a coin to be detected. When it passes through the machinery, print all analysis data on it to serial
-1: reads out the contents of the eeprom over serial
-2: waits for a coin to be detected. writes the results to the eeprom at address 0xE0
-3: reads the content of bank 0 (basically all RAM + registers)
+3: waits for a coin to be detected. When it passes through the machinery, print all analysis data on it to serial
+2: reads out the contents of the eeprom over serial
+1: waits for a coin to be detected. writes the results to the eeprom at address 0xE0
+0: reads the content of bank 0 (basically all RAM + registers)
 
 when using debugging mode, the state of encoder 1 and port1.1 should be set before is triggered.
 
 outside debugging mode, encoder 1 determines the 10's of the amount of money units necessary to trigger the mechanism, encoder 2 determines the 100's
 
 when learning mode is active, the relay is disabled, so coins will always be given back.
+when learning mode is active, the value of the coin is determined by encoder 1. settings are
+[10, 50, 100, 500, 500] yen
 
 the eeprom can be divided in 8 sections, each 0x10 bytes in size.
 Learning mode always writes to section 3 (0x20)

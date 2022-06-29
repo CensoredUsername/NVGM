@@ -3,7 +3,7 @@ import binascii
 from collections import deque
 
 def main():
-    with open("../bin1.bin", "rb") as f:
+    with open("../data/prom_dumps/dump1.bin", "rb") as f:
         image = f.read()
 
     # extract our sections
@@ -23,7 +23,7 @@ def main():
     analysis.identify_basic_blocks(sections[2], sections[4])
     analysis.build_call_graph(0x0080, 0x05CB, 0x05E3)
 
-    with open("test.s", "w", encoding="utf-8") as f:
+    with open("../data/decompiled_code/dump.s", "w", encoding="utf-8") as f:
         for section in sections:
             f.write("\n    ; SECTION {}\n\n".format(section.name))
             for i in section.instructions:

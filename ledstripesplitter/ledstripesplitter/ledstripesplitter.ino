@@ -1,5 +1,9 @@
 #include <avr/io.h>
 
+#if F_CPU != 20000000
+#error "F_CPU is not set to 20MHz, this code will not generate the correct signal"
+#endif
+
 // port index of the input pin being used
 #define INPUT_PORT PE
 
