@@ -5,10 +5,10 @@
 #endif
 
 // port index of the input pin being used
-#define INPUT_PORT PE
+#define INPUT_PORT PA
 
 // pin index of the input pin being used
-#define INPUT_PIN 2
+#define INPUT_PIN 0
 
 // amount of cycles that the input has to be low to register a reset condition. Supports values up to 1500.
 // should be at most 1000 (50us), and at least 8us
@@ -21,23 +21,23 @@ uint8_t segment_bytecode[2 * MAX_SEGMENT_COUNT] = {0};
 void setup() {
     cli();
     configure_input();
-    configure_segment(0, PE, 1);
-    configure_segment(1, PE, 0);
-    configure_segment(2, PB, 1);
-    configure_segment(3, PB, 0);
-    configure_segment(4, PE, 3);
-    configure_segment(5, PA, 1);
-    configure_segment(6, PF, 4);
+    configure_segment(0, PD, 5);
+    configure_segment(1, PD, 4);
+    configure_segment(2, PA, 3);
+    configure_segment(3, PA, 2);
+    configure_segment(4, PD, 0);   
+
+    configure_segment(5, PF, 5);
+    configure_segment(6, PC, 6);
     configure_segment(7, PB, 2);
-    configure_segment(8, PC, 6);
-    configure_segment(9, PF, 5);
-    configure_segment(10, PA, 0);
-    configure_segment(11, PC, 4);
-    configure_segment(12, PC, 5);
+    configure_segment(8, PF, 4);
+    configure_segment(9, PA, 1);
+    configure_segment(10, PE, 3);
+    configure_segment(11, PB, 0);
 }
 
 void loop() {
-    execute_bytecode(12, 16);
+    execute_bytecode(12, 2 * 4 * 5);
 }
 
 void configure_input() {
