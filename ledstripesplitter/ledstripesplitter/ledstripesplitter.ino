@@ -1,14 +1,34 @@
 #include <avr/io.h>
 
-#if F_CPU != 20000000
-#error "F_CPU is not set to 20MHz, this code will not generate the correct signal"
-#endif
+
+
+
+// THE FOLLOWING VALUES CAN BE CHANGED TO SUIT THE WIRING
+
 
 // port index of the input pin being used
 #define INPUT_PORT PA
 
 // pin index of the input pin being used
 #define INPUT_PIN 0
+
+// the amount of segments that the signal will be split over. Maxes out at 127
+#define SEGMENT_COUNT 12
+
+// the amount of LEDs in a single segment
+#define SEGMENT_SIZE (2 * 4 * 5)
+
+// the actual segment pin assignment is located in setup() below.
+
+
+// END OF USER CONFIG
+
+
+
+
+#if F_CPU != 20000000
+#error "F_CPU is not set to 20MHz, this code will not generate the correct signal. check boards.txt"
+#endif
 
 // amount of cycles that the input has to be low to register a reset condition. Supports values up to 1500.
 // should be at most 1000 (50us), and at least 8us
@@ -18,9 +38,14 @@
 #define MAX_SEGMENT_COUNT 127
 uint8_t segment_bytecode[2 * MAX_SEGMENT_COUNT] = {0};
 
+
 void setup() {
     cli();
     configure_input();
+
+    // THE FOLLOWING CODE CONFIGURES THE PINS THAT THE SIGNAL WILL BE SPLIT OVER.
+    // The arguments represent segment index, port, and pin index within said port.
+
     configure_segment(0, PD, 5);
     configure_segment(1, PD, 4);
     configure_segment(2, PA, 3);
@@ -37,7 +62,11 @@ void setup() {
 }
 
 void loop() {
-    execute_bytecode(12, 2 * 4 * 5);
+    // wait 30us so we ensure the reset signal is propagated properly the first time around
+    // the multiplexer only needs 30us of low signal to detect a reset to handle misbehaving controllers
+    // but that means that during bootup it might get confused if the avr itself needed some time to boot (and it boots with pins high)
+    wait(30);
+    execute_bytecode(SEGMENT_COUNT, SEGMENT_SIZE);
 }
 
 void configure_input() {
@@ -56,6 +85,22 @@ void configure_segment(uint8_t index, uint8_t port, uint8_t pin) {
     PORT_t& port_ref = (&PORTA)[port];
     port_ref.DIRSET = 1 << pin;
     port_ref.OUTCLR = 1 << pin;
+}
+
+void wait(uint8_t us) {
+    asm volatile (
+        "loop: \n"
+            "nop \n nop \n nop \n nop \n nop\n"
+            "nop \n nop \n nop \n nop \n nop \n"
+            "nop \n nop \n nop \n nop \n nop \n"
+            "nop \n nop \n"
+            "dec %[count] \n"
+            "brne loop \n"
+            "nop \n"
+        : [count]"+r"(us)
+        :
+        :
+    );
 }
 
 void execute_bytecode(uint8_t segment_count, uint8_t segment_length) {
