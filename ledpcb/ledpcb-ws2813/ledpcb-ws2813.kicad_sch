@@ -1332,6 +1332,12 @@
     (uuid fda17d15-5adb-44f5-9e8e-3ffdc8030209)
   )
 
+  (text "If using ws2813b's populate R1-6,8,10 and C1-2,4-9.\nIf using ws2813b-v5's then pin 1 changes from VCC to BOUT,\nwhich is internally connected to DIN (experimentally confirmed).\nIn this case, do not populate the above mentioned resistors and capacitors."
+    (at 40.64 115.57 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid f0ac4d4e-6b71-4596-8e34-98997a4fc58f)
+  )
+
   (label "DATA OUT" (at 228.6 80.01 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 0c1724c2-46b0-48ac-9ae7-dd38eae7bf1c)
