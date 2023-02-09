@@ -83,7 +83,7 @@ void h_to_rgb(Pixel *pixel, uint16_t angle) {
 
 // generates a waveform compatible with Ws2812 control
 Segment segment;
-Pixel framebuffer[8 * 5] = {{0}};
+Pixel framebuffer[8 * 5] = {{0,0,0}};
 
 void setup() {
     // initialize output pin

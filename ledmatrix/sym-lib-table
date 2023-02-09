@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name "ledmatrix")(type "KiCad")(uri "${KIPRJMOD}/ledmatrix.kicad_sym")(options "")(descr ""))
+)
