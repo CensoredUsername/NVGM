@@ -312,8 +312,10 @@
     (uuid fd2dfc87-cbe0-48a5-96bf-867231fe884a)
   )
 
-  (no_connect (at 81.28 110.49) (uuid 774ca915-cf71-421b-9f9f-4d9e32dc20b5))
-
+  (wire (pts (xy 73.66 110.49) (xy 81.28 110.49))
+    (stroke (width 0) (type default) (color 0 0 0 0))
+    (uuid 0620f927-82d8-4ef0-a39e-b43b41b44057)
+  )
   (wire (pts (xy 73.66 125.73) (xy 81.28 125.73))
     (stroke (width 0) (type default) (color 0 0 0 0))
     (uuid 10c1c048-0c98-4301-857a-e918bb1062f8)
@@ -454,6 +456,10 @@
   (hierarchical_label "12" (shape output) (at 119.38 120.65 0)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid b33cdc72-50f1-42c7-bcdb-6edb1bd27e36)
+  )
+  (hierarchical_label "SOUT" (shape output) (at 73.66 110.49 180)
+    (effects (font (size 1.27 1.27)) (justify right))
+    (uuid b8cf574d-18d4-44c7-9b85-bf57d7f9f38f)
   )
   (hierarchical_label "8" (shape output) (at 119.38 110.49 0)
     (effects (font (size 1.27 1.27)) (justify left))
