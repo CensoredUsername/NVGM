@@ -322,8 +322,8 @@
       ""
     ],
     [
-      "4551dbf2-c8b4-4262-8e5c-acd09d6a3297",
-      "scanlines"
+      "9296d91b-6e65-4f1d-affe-ed4d1db87e9d",
+      "drivers"
     ],
     [
       "b7ae3dab-b63a-417a-945c-143c60434114",
@@ -359,7 +359,19 @@
     ],
     [
       "98f75ceb-447e-4fd6-8118-11d23017f419",
-      "comms"
+      "misc"
+    ],
+    [
+      "91098423-adb0-48c4-94ec-63b52da1fe71",
+      "lcdcontroller"
+    ],
+    [
+      "8bf1ea9f-6b1e-425f-861f-09b844011d99",
+      "mpu"
+    ],
+    [
+      "041bba34-c371-4600-8543-62c3e6e1a75e",
+      "memory"
     ]
   ],
   "text_variables": {}
