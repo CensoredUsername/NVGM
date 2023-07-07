@@ -411,6 +411,12 @@
     (uuid f403b390-e4d9-4204-a369-7c9502fb2abd)
   )
 
+  (text "Pick R and C so that RC ~= 200ns. i.e.\nR = 10k\nC = 22pF"
+    (at 130.81 54.61 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 34f24197-356c-4888-ad38-f8a394745a86)
+  )
+
   (symbol (lib_id "Connector_Generic:Conn_01x03") (at 198.12 36.83 0) (mirror x) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 0252b0ce-98c6-49c2-828c-747da942b79c)
