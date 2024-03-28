@@ -97,6 +97,20 @@ void loop() {
     // put your main code here, to run repeatedly:
     cli();
 
+    // white tester
+    for (uint8_t i = 0; i < 40; i++) {
+        framebuffer[i].r = 0xFF;
+        framebuffer[i].g = 0xFF;
+        framebuffer[i].b = 0xFF;
+    }
+    for (;;) {
+        framing_start(20833);
+        blit_segment(framebuffer, 40, &segment);
+        framing_end();
+    }
+
+
+    // color wheel tester
     uint16_t angle = 0;
     for(;;) {
         framing_start(20833);
