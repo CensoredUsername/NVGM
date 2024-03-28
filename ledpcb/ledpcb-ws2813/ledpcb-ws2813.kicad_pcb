@@ -117,7 +117,7 @@
     (descr "Diode SMA (DO-214AC)")
     (tags "Diode SMA (DO-214AC)")
     (property "JLCPCB" "")
-    (property "LCSC" "C2844869")
+    (property "LCSC" "C5128847")
     (property "Package" "SMA")
     (property "Sheetfile" "ledpcb-ws2813.kicad_sch")
     (property "Sheetname" "")
