@@ -87,6 +87,8 @@ void setup() {
 
     set_mode(PA, 0, false);
     set_pullup(PA, 0, false);
+
+    Serial.begin(38400);
 }
 
 
@@ -94,22 +96,24 @@ void loop() {
     // put your main code here, to run repeatedly:
     cli();
 
+    Pixel light(balanced.r >> 2, balanced.g >> 2, balanced.b >> 2);
+    for (uint8_t i = 0; i < 6 * 8; i++) {
+        framebuffer[i] = light;
+    }
+
     for (uint32_t ticks = 0;; ticks++) {
         ws2813::framing_start(WS2813_FRAMING_FPS(60));
-        if (!read_pin(PA, 0)) {
-            ws2813::write_segment(framebuffer, 8 * 12, &segment);
-        }
+        ws2813::write_segment(framebuffer, 8 * 12, &segment);
         ws2813::framing_end();
 
-        if (ticks < 60) {
-
+        if (!read_pin(PA, 0)) {
+            do_firesim(48);
+            payload_heartbeat();
         } else {
-            do_firesim(0);
-        }/* else if (ticks < 360) {
-            fade();
-        } else {
-            white_rotate(0);
-        }*/
+            for (uint8_t i = 0; i < 8 * 12; i++) {
+                framebuffer[i] = Pixel(0,0,0);
+            }
+        }
     }
 }
 
@@ -182,6 +186,41 @@ void white_rotate(uint8_t offset) {
     }
 }
 
-void payload_scroll() {
-    //
+void payload_heartbeat() {
+    // be dark for like 1 second
+    // fade in for about 1
+    // fade out for about 1
+    static uint16_t ticks = 0;
+    ticks += 1;
+    if (ticks > 360) {
+        ticks = 0;
+    }
+
+    for (uint8_t i = 0; i < 8; i++) {
+
+        uint16_t ticks_local = ticks + 240 - (uint16_t(i) * 10);
+        while (ticks_local > 360) {
+            ticks_local -= 360;
+        }
+
+        uint8_t intensity;
+        if (ticks_local < 120) {
+            intensity = ticks_local * 2;
+        } else if (ticks_local < 120) {
+            intensity = 255;
+        } else if (ticks_local < 240) {
+            intensity = (240 - ticks_local) * 2;
+        } else {
+            intensity = 0;
+        }
+
+        Pixel value((balanced.r * intensity) >> 8, 0, 0);
+
+        framebuffer[i] = value;
+        framebuffer[i+8] = value;
+        framebuffer[i+16] = value;
+        framebuffer[24+7-i] = value;
+        framebuffer[32+7-i] = value;
+        framebuffer[40+7-i] = value;
+    }
 }
