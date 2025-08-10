@@ -408,6 +408,27 @@ struct Cursor {
 };
 
 /**
+ * decoding table for gamma-compressed data
+ */
+static const uint8_t gamma_decode_table[192] = {
+      0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,
+     13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,
+     26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,
+     39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,
+     52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,  64,
+     65,  66,  67,  68,  70,  71,  72,  73,  74,  75,  76,  77,  79,
+     80,  81,  82,  83,  85,  86,  87,  88,  90,  91,  92,  93,  95,
+     96,  97,  99, 100, 101, 103, 104, 105, 107, 108, 109, 111, 112,
+    114, 115, 117, 118, 120, 121, 123, 124, 126, 127, 129, 130, 132,
+    133, 135, 136, 138, 140, 141, 143, 144, 146, 148, 149, 151, 153,
+    154, 156, 158, 160, 161, 163, 165, 167, 168, 170, 172, 174, 176,
+    177, 179, 181, 183, 185, 187, 189, 190, 192, 194, 196, 198, 200,
+    202, 204, 206, 208, 210, 212, 214, 216, 218, 220, 222, 224, 226,
+    228, 231, 233, 235, 237, 239, 241, 243, 246, 248, 250, 252, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255
+};
+
+/**
  * Helper class for rendering and yes, partial updates.
  */
 class Renderer {
@@ -444,12 +465,12 @@ public:
     }
 
     /**
-     * Sets the color that we're drawing pixels with.
+     * Sets the (gamma-compressed) color that we're drawing pixels with.
      */
     void set_color(const uint8_t new_r, const uint8_t new_g, const uint8_t new_b) {
-        r = new_r;
-        g = new_g;
-        b = new_b;
+        r = new_r < 192 ? gamma_decode_table[new_r] : 255;
+        g = new_g < 192 ? gamma_decode_table[new_g] : 255;
+        b = new_b < 192 ? gamma_decode_table[new_b] : 255;
     }
 
     /**
@@ -490,6 +511,12 @@ public:
      * if no further arguments are expected.
      */
     virtual uint8_t argument(uint8_t command_byte, uint32_t argument_index, uint32_t argument_data) { return 0; };
+
+    /**
+     * Override to handle streamed ddata after a command.
+     * Data is ignored by default.
+     */
+    virtual void stream(uint8_t command_byte, uint8_t data) { };
 };
 
 /**
@@ -497,57 +524,52 @@ public:
  */
 class Protocol {
 private:
-    static constexpr uint8_t reset_sequence[11] = "UuDdLrLrAb";
-    uint8_t reset_index = 0;
     uint8_t current_command = 0;
     uint8_t num_argument_bytes_remain = 0;
     uint32_t current_argument = 0;
     uint32_t argument_index = 0;
-    CommandHandler *command_handlers[256] = {};
+    CommandHandler *command_handlers[64] = {};
 
     /**
      * Handles a received byte.
      */
     void handle_byte(const uint8_t data) {
-
-        // Handle protocol reset sequence.
-        if (data == reset_sequence[reset_index]) {
-            reset_index++;
-            if (!reset_sequence[reset_index]) {
-                reset_index = 0;
-                num_argument_bytes_remain = 0;
-                Serial.write("$");
-                return;
-            }
-        }
-
-        if (num_argument_bytes_remain) {
-            // Store up to 4 bytes per argument as requested by preceding
-            // handle_command().
-            current_argument <<= 8;
-            current_argument |= data;
-            num_argument_bytes_remain--;
-            if (!num_argument_bytes_remain) {
-                if (const auto handler = command_handlers[current_command]) {
-                    num_argument_bytes_remain = handler->argument(current_command, argument_index, current_argument);
-                    if (num_argument_bytes_remain) {
-                        argument_index++;
-                        current_argument = 0;
-                    }
-                }
-            }
-        } else {
-            // If we're not waiting for an argument, the next byte is a
-            // command.
-            current_command = data;
-            if (const auto handler = command_handlers[current_command]) {
-                num_argument_bytes_remain = handler->command(current_command);
-                if (num_argument_bytes_remain) {
-                    argument_index = 0;
-                    current_argument = 0;
+        if ((data & 0xC0) == 0xC0) {
+            // command byte
+            this->current_command = data & 0x3F;
+            if (const auto handler = this->command_handlers[this->current_command]) {
+                this->num_argument_bytes_remain = handler->command(this->current_command);
+                if (this->num_argument_bytes_remain) {
+                    this->argument_index = 0;
+                    this->current_argument = 0;
                 }
             } else {
                 Serial.write("?");
+            }
+
+        } else {
+            // data byte
+            if (this->num_argument_bytes_remain) {
+                // Store up to 28 bits per argument as requested by preceding
+                // handle_command().
+                this->current_argument <<= 7;
+                this->current_argument |= data;
+                this->num_argument_bytes_remain--;
+                if (!this->num_argument_bytes_remain) {
+                    if (const auto handler = this->command_handlers[this->current_command]) {
+                        this->num_argument_bytes_remain = handler->argument(
+                            this->current_command, this->argument_index, this->current_argument);
+                        if (this->num_argument_bytes_remain) {
+                            this->argument_index++;
+                            this->current_argument = 0;
+                        }
+                    }
+                }
+            } else {
+                // non-argument data stream
+                if (const auto handler = this->command_handlers[this->current_command]) {
+                    handler->stream(this->current_command, data);
+                }
             }
         }
     }
@@ -565,7 +587,7 @@ public:
      * Installs a command handler for the given command byte.
      */
     void set_handler(const uint8_t command_byte, CommandHandler *handler) {
-        command_handlers[command_byte] = handler;
+        command_handlers[command_byte & 0x3F] = handler;
     }
 
     /**
@@ -582,17 +604,17 @@ class GeometryCommandHandler final : public CommandHandler {
 public:
     uint8_t command(const uint8_t command_byte) override {
         (void)command_byte;
-        return 3;
+        return 2;
     }
 
     uint8_t argument(const uint8_t command_byte, const uint32_t argument_index, const uint32_t argument_data) override {
         (void)command_byte;
         (void)argument_index;
-        const uint8_t width = argument_data & 0xFF;
-        const uint8_t height = (argument_data >> 8) & 0xFF;
-        const bool vertical = ((argument_data >> 16) & 1) != 0;
-        const bool mirror_x = ((argument_data >> 17) & 1) != 0;
-        const bool mirror_y = ((argument_data >> 18) & 1) != 0;
+        const uint8_t width = argument_data & 0x7;
+        const uint8_t height = (argument_data >> 3) & 0x7;
+        const bool vertical = ((argument_data >> 6) & 1) != 0;
+        const bool mirror_x = ((argument_data >> 7) & 1) != 0;
+        const bool mirror_y = ((argument_data >> 8) & 1) != 0;
         screen.set_geometry(width, height, vertical, mirror_x, mirror_y);
         Serial.printf("%d %d\n", screen.width(), screen.height());
         screen.gradient(false);
@@ -604,13 +626,13 @@ class SetCursorCommandHandler : public CommandHandler {
 public:
     uint8_t command(const uint8_t command_byte) override {
         (void)command_byte;
-        return 3;
+        return 2;
     }
 
     uint8_t argument(const uint8_t command_byte, const uint32_t argument_index, const uint32_t argument_data) override {
         (void)command_byte;
         (void)argument_index;
-        renderer.set_cursor(argument_data & 0xFFF, argument_data >> 12);
+        renderer.set_cursor(argument_data & 0x7F, argument_data >> 7);
         return 0;
     }
 } set_cursor_handler {};
@@ -625,21 +647,18 @@ public:
 } set_cursor_and_draw_handler {};
 
 class SetWindowCommandHandler : public CommandHandler {
-private:
-    uint32_t arg0 = 0;
 public:
     uint8_t command(const uint8_t command_byte) override {
         (void)command_byte;
-        return 3;
+        return 4;
     }
 
     uint8_t argument(const uint8_t command_byte, const uint32_t argument_index, const uint32_t argument_data) override {
-        (void)command_byte;
-        if (argument_index == 0) {
-            arg0 = argument_data;
-            return 3;
-        }
-        renderer.set_window(arg0 & 0xFFF, arg0 >> 12, argument_data & 0xFFF, argument_data >> 12);
+        uint8_t x_min = argument_data & 0x7F;
+        uint8_t y_min = (argument_data >> 7) & 0x7F;
+        uint8_t x_max = (argument_data >> 14) & 0x7F;
+        uint8_t y_max = (argument_data >> 21) & 0x7F;
+        renderer.set_window(x_min, y_min, x_max, y_max);
         return 0;
     }
 } set_window_handler {};
@@ -654,8 +673,6 @@ public:
 } set_window_and_draw_handler {};
 
 class ResetWindowCommandHandler final : public CommandHandler {
-private:
-    uint32_t arg0 = 0;
 public:
     uint8_t command(const uint8_t command_byte) override {
         (void)command_byte;
@@ -665,8 +682,6 @@ public:
 } reset_window_handler {};
 
 class ClearScreenCommandHandler final : public CommandHandler {
-private:
-    uint32_t arg0 = 0;
 public:
     uint8_t command(const uint8_t command_byte) override {
         (void)command_byte;
@@ -678,48 +693,42 @@ public:
 } clear_screen_handler {};
 
 class SetColorCommandHandler : public CommandHandler {
+    uint8_t color_buffer[3];
+    uint8_t color_buffer_index;
 public:
     uint8_t command(const uint8_t command_byte) override {
         (void)command_byte;
-        return 3;
+        color_buffer_index = 0;
+        return 0;
     }
 
-    uint8_t argument(const uint8_t command_byte, const uint32_t argument_index, const uint32_t argument_data) override {
+    void stream(const uint8_t command_byte, const uint8_t data) {
         (void)command_byte;
-        renderer.set_color(argument_data & 0xFF, (argument_data >> 8) & 0xFF, argument_data >> 16);
-        return 0;
+        this->color_buffer[this->color_buffer_index++] = data;
+        if (this->color_buffer_index >= 3) {
+            this->color_buffer_index = 0;
+            renderer.set_color(
+                this->color_buffer[0], this->color_buffer[1], this->color_buffer[2]);
+        }
     }
 } set_color_handler {};
 
 class SetColorAndDrawCommandHandler final : public SetColorCommandHandler {
+    uint8_t color_buffer[3];
+    uint8_t color_buffer_index;
 public:
-    uint8_t argument(const uint8_t command_byte, const uint32_t argument_index, const uint32_t argument_data) override {
-        SetColorCommandHandler::argument(command_byte, argument_index, argument_data);
-        renderer.draw_pixel();
-        return 0;
-    }
-} set_color_and_draw_handler {};
-
-class BulkDrawCommandHandler final : public CommandHandler {
-private:
-    uint16_t pixels_remain = 0;
-public:
-    uint8_t command(const uint8_t command_byte) override {
+    void stream(const uint8_t command_byte, const uint8_t data) {
         (void)command_byte;
-        return 2;
-    }
-
-    uint8_t argument(const uint8_t command_byte, const uint32_t argument_index, const uint32_t argument_data) override {
-        (void)command_byte;
-        if (argument_index == 0) {
-            pixels_remain = argument_data;
-        } else {
-            renderer.set_color(argument_data & 0xFF, (argument_data >> 8) & 0xFF, argument_data >> 16);
+        this->color_buffer[this->color_buffer_index++] = data;
+        if (this->color_buffer_index == 3) {
+            this->color_buffer_index = 0;
+            renderer.set_color(
+                this->color_buffer[0], this->color_buffer[1], this->color_buffer[2]);
             renderer.draw_pixel();
         }
-        return pixels_remain > 0 ? 3 : 0;
     }
-} bulk_draw_handler {};
+
+} set_color_and_draw_handler {};
 
 class FinishFrameCommandHandler final : public CommandHandler {
 public:
@@ -752,19 +761,18 @@ public:
 void setup() {
     screen.setup();
     protocol.setup();
-    protocol.set_handler('g', &geometry_handler);
-    protocol.set_handler('c', &set_cursor_handler);
-    protocol.set_handler('C', &set_cursor_and_draw_handler);
-    protocol.set_handler('w', &set_window_handler);
-    protocol.set_handler('W', &set_window_and_draw_handler);
-    protocol.set_handler('r', &reset_window_handler);
-    protocol.set_handler('R', &clear_screen_handler);
-    protocol.set_handler('k', &set_color_handler);
-    protocol.set_handler('K', &set_color_and_draw_handler);
-    protocol.set_handler('B', &bulk_draw_handler);
-    protocol.set_handler('f', &finish_frame_handler);
-    protocol.set_handler('F', &finish_frame_and_retain_handler);
-    protocol.set_handler('?', &randomize_handler);
+    protocol.set_handler(0x0, &geometry_handler);
+    protocol.set_handler(0x1, &set_cursor_handler);
+    protocol.set_handler(0x2, &set_cursor_and_draw_handler);
+    protocol.set_handler(0x3, &set_window_handler);
+    protocol.set_handler(0x4, &set_window_and_draw_handler);
+    protocol.set_handler(0x5, &reset_window_handler);
+    protocol.set_handler(0x6, &clear_screen_handler);
+    protocol.set_handler(0x7, &set_color_handler);
+    protocol.set_handler(0x8, &set_color_and_draw_handler);
+    protocol.set_handler(0x9, &finish_frame_handler);
+    protocol.set_handler(0xA, &finish_frame_and_retain_handler);
+    protocol.set_handler(0xB, &randomize_handler);
 }
 
 void loop() {

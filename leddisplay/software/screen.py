@@ -2,6 +2,28 @@ from typing import Sequence
 import struct
 from serial import Serial
 
+COMPRESSED_GAMMA_ENCODING = [
+      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+      0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   1,   1,   1,
+      1,   1,   1,   1,   2,   2,   2,   2,   2,   3,   3,   3,   3,
+      3,   4,   4,   4,   4,   5,   5,   5,   5,   6,   6,   6,   7,
+      7,   7,   7,   8,   8,   8,   9,   9,  10,  10,  10,  11,  11,
+     12,  12,  12,  13,  13,  14,  14,  15,  15,  16,  16,  17,  17,
+     18,  18,  19,  19,  20,  20,  21,  21,  22,  23,  23,  24,  24,
+     25,  26,  26,  27,  28,  28,  29,  30,  30,  31,  32,  32,  33,
+     34,  35,  35,  36,  37,  38,  38,  39,  40,  41,  42,  43,  43,
+     44,  45,  46,  47,  48,  49,  50,  50,  51,  52,  53,  54,  55,
+     56,  57,  58,  59,  60,  61,  62,  63,  64,  65,  66,  67,  68,
+     69,  70,  71,  72,  73,  74,  75,  76,  77,  78,  79,  80,  81,
+     82,  83,  84,  85,  86,  87,  88,  89,  90,  91,  92,  93,  94,
+     95,  96,  97,  98,  99, 100, 101, 102, 103, 104, 105, 106, 107,
+    108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120,
+    121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133,
+    134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146,
+    147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+    160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172,
+    173, 174, 175, 176, 177, 178, 179, 180, 181
+]
 
 class Screen:
     """Driver for Wacca-meets-Maurits pixel art bendable screen thingy 9000"""
@@ -23,28 +45,19 @@ class Screen:
 
     @staticmethod
     def _encode_cursor(pos: tuple[int, int]) -> bytes:
-        argument = pos[0] & 0xFFF
-        argument |= (pos[1] & 0xFFF) << 12
-        return struct.pack(">I", argument)[-3:]
+        return bytes((pos[1] & 0x7F, pos[0] & 0x7F))
 
     @staticmethod
     def _encode_color(pos: tuple[int, int, int]) -> bytes:
-        return bytes(reversed(pos))
+        return bytes((
+            COMPRESSED_GAMMA_ENCODING[pos[0]],
+            COMPRESSED_GAMMA_ENCODING[pos[1]],
+            COMPRESSED_GAMMA_ENCODING[pos[2]],
+        ))
 
     def _write(self, data: bytes) -> None:
         # print(data)
         self._serial.write(data)
-
-    def _sync(self) -> None:
-        self._write(b"UuDdLrLrAb")
-        for _ in range(1000):
-            while True:
-                x = self._serial.read(1)
-                if x == b"$":
-                    return
-                if x == b"":
-                    break
-        raise ValueError("Communication error")
 
     def set_geometry(
         self,
@@ -61,15 +74,15 @@ class Screen:
         startup flicker under normal operating conditions it does not
         finish the frame. So, to test with the gradient, call
         finish_frame() after setting the display geometry."""
-        argument = width_in_panels & 0xFF
-        argument |= (height_in_panels & 0xFF) << 8
+        argument = width_in_panels & 0x7
+        argument |= (height_in_panels & 0x7) << 3
         if vertical:
-            argument |= 1 << 16
+            argument |= 1 << 6
         if mirror_x:
-            argument |= 1 << 17
+            argument |= 1 << 7
         if mirror_y:
-            argument |= 1 << 18
-        self._write(b"g" + struct.pack(">I", argument)[-3:])
+            argument |= 1 << 8
+        self._write(bytes(0xC0, (argument >> 7) & 0x7F, argument & 0x7F))
         self._width, self._height = map(
             int, self._serial.readline().decode("ascii").strip().split()
         )
@@ -77,7 +90,7 @@ class Screen:
     def set_cursor(self, pos: tuple[int, int], and_draw: bool = False) -> None:
         """Sets the cursor position. If and_draw is set, also set the pixel to
         the current color and increment the cursor position."""
-        self._write((b"C" if and_draw else b"c") + self._encode_cursor(pos))
+        self._write((b"\xC2" if and_draw else b"\xC1") + self._encode_cursor(pos))
 
     def set_window(
         self, min_pos: tuple[int, int], max_pos: tuple[int, int], and_draw: bool = False
@@ -85,25 +98,25 @@ class Screen:
         """Sets the rectangular window that the cursor uses for wrapping.
         Coordinates are inclusive. If and_draw is set, all pixels in the window
         are set to the current color."""
-        self._write(
-            (b"W" if and_draw else b"w")
-            + self._encode_cursor(min_pos)
-            + self._encode_cursor(max_pos),
+        self._write(b""
+            (b"\xC4" if and_draw else b"\xC3")
+            + self._encode_cursor(max_pos)
+            + self._encode_cursor(min_pos),
         )
 
     def reset_window(self) -> None:
         """Resets the rectangular window that the cursor uses for wrapping to
         the full screen."""
-        self._write(b"r")
+        self._write(b"\xC5")
 
     def clear_screen(self) -> None:
         """Clears the whole screen, color, and cursor position."""
-        self._write(b"R")
+        self._write(b"\xC6")
 
     def set_color(self, color: tuple[int, int, int], and_draw: bool = False) -> None:
         """Sets the current color. If and_draw is set, the color is also
         written to the cursor position, and the position is incremented."""
-        self._write((b"K" if and_draw else b"k") + self._encode_color(color))
+        self._write((b"\xC8" if and_draw else b"\xC7") + self._encode_color(color))
 
     def set_pixel(self, position: tuple[int, int], color: tuple[int, int, int]):
         """Combination of setting cursor position, setting color, and drawing
@@ -114,11 +127,7 @@ class Screen:
     def draw_pixels(self, data: Sequence[tuple[int, int, int]]) -> None:
         """Same as set_color(..., and_draw=True) in a loop, but sent more
         efficiently."""
-        self._write(
-            b"B"
-            + struct.pack("<H", len(data))
-            + b"".join(self._encode_color(color) for color in data)
-        )
+        self._write(b"\xC8" + b"".join(self._encode_color(color) for color in data))
 
     def finish_frame(self, retain: bool = True) -> None:
         """Finish the current frame -- it will be sent to the LEDs at the next
@@ -126,12 +135,12 @@ class Screen:
         copied to the buffer for the next frame in hardware, allowing for
         proper partial updates. If it's set to false, the contents of the new
         buffer are undefined and the buffer should be fully overwritten."""
-        self._write(b"F" if retain else b"f")
+        self._write(b"\xCA" if retain else b"\xC9")
 
     def randomize(self) -> None:
         """Randomize the screen for testing. This includes finishing the
         frame."""
-        self._write(b"?")
+        self._write(b"\xCB")
 
     @property
     def width(self) -> int:
