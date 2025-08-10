@@ -1,0 +1,11 @@
+.program ws2813b
+
+.wrap_target
+    out X, 1
+    ; high: 7
+    set pins, 1 [6]
+    ; cond: 3
+    mov PINS, X [2]
+    ; low: 11
+    set pins, 0 [9]
+.wrap
