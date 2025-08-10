@@ -32,7 +32,6 @@ class Screen:
         self._width = 0
         self._height = 0
         self._serial = Serial(device, timeout=0.1)
-        self._sync()
         self.set_geometry(*args, **kwargs)
         self.clear_screen()
         self.finish_frame()
@@ -82,7 +81,7 @@ class Screen:
             argument |= 1 << 7
         if mirror_y:
             argument |= 1 << 8
-        self._write(bytes(0xC0, (argument >> 7) & 0x7F, argument & 0x7F))
+        self._write(bytes((0xC0, (argument >> 7) & 0x7F, argument & 0x7F)))
         self._width, self._height = map(
             int, self._serial.readline().decode("ascii").strip().split()
         )
@@ -98,7 +97,7 @@ class Screen:
         """Sets the rectangular window that the cursor uses for wrapping.
         Coordinates are inclusive. If and_draw is set, all pixels in the window
         are set to the current color."""
-        self._write(b""
+        self._write(
             (b"\xC4" if and_draw else b"\xC3")
             + self._encode_cursor(max_pos)
             + self._encode_cursor(min_pos),
