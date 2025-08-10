@@ -153,33 +153,42 @@ class Screen:
 
 
 if __name__ == "__main__":
-
     import time
+    import numpy as np
+    import cv2
+    import sys
 
-    with Screen("/dev/ttyACM1", 1, 3) as s:
-        # draw a mandelbrot fractal?
+    device = sys.argv[1]
+    videos = sys.argv[2:]
 
-        start = time.time()
+    def play_video(screen, video):
+        cap = cv2.VideoCapture(video)
+        fps = cap.get(cv2.CAP_PROP_FPS)
         last_update = time.time()
-        while True:
-            t = time.time() - start
-            for x in range(s.width):
-                re = (x / s.width - 0.5) * 2.5 * 0.7**t + 0  # 0.743643887037151
-                for y in range(s.height):
-                    im = (y / s.width - 0.5) * 2.5 * 0.7**t + 1  # 0.131825904205330
-                    c = re + 1j * im
-                    a = 0.0
-                    i = 0
-                    for i in range(256):
-                        a = a**2 + c
-                        if abs(a) > 2:
-                            break
-                    s.set_pixel((x, y), (i, 0, 0))
-            s.finish_frame()
+        while cap.isOpened():
+            ret, frame = cap.read()
+            frame = cv2.resize(frame, (screen.width, screen.height), interpolation=cv2.INTER_LINEAR)
+            frame = frame.reshape(screen.width * screen.height, 3)
+            frame = np.flip(frame, axis=1)
+            screen.clear_screen()
+            screen.draw_pixels(frame)
+            screen.finish_frame()
             while True:
                 now = time.time()
                 delta = now - last_update
-                if delta > 1 / 60:
-                    last_update += 1 / 16
+                if delta > 1 / fps:
+                    last_update += 1 / fps
                     break
                 time.sleep(0.001)
+
+    with Screen(device, 3, 1, True) as screen:
+        while True:
+            for video in videos:
+                screen.clear_screen()
+                screen.finish_frame()
+                time.sleep(1)
+                print(video)
+                try:
+                    play_video(screen, video)
+                except Exception as e:
+                    print(e)
