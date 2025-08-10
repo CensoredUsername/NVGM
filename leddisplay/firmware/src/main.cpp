@@ -826,6 +826,7 @@ public:
 } clear_screen_handler {};
 
 class SetColorCommandHandler : public CommandHandler {
+protected:
     uint8_t color_buffer[3];
     uint8_t color_buffer_index;
 public:
@@ -847,8 +848,6 @@ public:
 } set_color_handler {};
 
 class SetColorAndDrawCommandHandler final : public SetColorCommandHandler {
-    uint8_t color_buffer[3];
-    uint8_t color_buffer_index;
 public:
     void stream(const uint8_t command_byte, const uint8_t data) {
         (void)command_byte;
