@@ -242,11 +242,11 @@ public:
      * Sets the geometry of the screen.
      */
     bool set_geometry(
-        uint32_t new_width_in_panels = 1,
+        const uint32_t new_width_in_panels = 1,
         uint32_t new_height_in_panels = 0,
         const bool new_vertical = false,
         bool new_mirror_x = false,
-        bool new_mirror_y = false
+        const bool new_mirror_y = false
     ) {
         if (!new_width_in_panels) return false;
         if (!new_height_in_panels) new_height_in_panels = num_panels / new_width_in_panels;
@@ -317,10 +317,11 @@ public:
         const uint32_t panel_y = y / num_leds_per_strip;
 
         // Determine index of panel being addressed, failing on out-of-range.
-        if (width_in_panels == 0) return false;
-        if (panel_x >= width_in_panels) return false;
-        if (panel_y >= height_in_panels) return false;
-        const uint32_t panel_index = panel_x + panel_y * width_in_panels;
+        const uint32_t swapped_width_in_panels = vertical ? height_in_panels : width_in_panels;
+        const uint32_t swapped_height_in_panels = vertical ? width_in_panels : height_in_panels;
+        if (panel_x >= swapped_width_in_panels) return false;
+        if (panel_y >= swapped_height_in_panels) return false;
+        const uint32_t panel_index = panel_x + panel_y * swapped_width_in_panels;
         if (panel_index >= num_panels_per_strand * num_strands) return false;
 
         // Split panel index into strand index and panel in strand.
